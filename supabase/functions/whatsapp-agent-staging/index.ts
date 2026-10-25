@@ -1,6 +1,6 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 976d9d31a7b1a876417b46fbf9d56d48e917c2fc265dcb3c699fdc30d4d4c3be)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 d901b4667d10acbf33e1d22f3e34d6e624f6e61d1dee53f4612a785bf4197a23)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
@@ -58,6 +58,7 @@ import {
 } from "../whatsapp-agent/slotOfferGuard.ts";
 import {
   findProposalMismatch,
+  hasProposalMention,
   pendingDriftNudge,
   restatePendingProposal,
 } from "../whatsapp-agent/pendingTimeGuard.ts";
@@ -3848,21 +3849,7 @@ stagingServe(async (req: Request) => {
       bookPreviewLang.test(result.text) && !reschedLang.test(result.text) &&
       !pendingBookFresh && !cancelIntent && !confirmCancel;
 
-    // R84 TIJDVANGNET (pendingTimeGuard.ts header; Mathieu 25-10-2026). bookPreviewMissed above is off while a
-    // fresh proposal exists, so a prose reply that proposes ANOTHER time or day than the stored pending_booking
-    // had no nudge (D09, 24-10: stored 15:00, "Ik boek dan ... om 16:00 ..., klopt dat?", no tool call). A "ja"
-    // commits the stored slot, not the text. Only when this turn made no preview and committed nothing.
-    const previewedThisTurn = result.toolCalls.some((t) =>
-      t.name === "book_appointment" && !!t.result &&
-      typeof t.result === "object" &&
-      (t.result as Record<string, unknown>).needs_confirmation === true &&
-      !!(t.result as Record<string, unknown>).proposal
-    );
-    const pendingDrift = pendingBookFresh && !succeededMutation &&
-        !previewedThisTurn && !cancelIntent && !confirmCancel && !!result.text
-      ? findProposalMismatch(result.text, pbk?.start_time ?? null, now)
-      : null;
-    const pendingTimeDrift = pendingDrift !== null;
+    // R84 TIJDVANGNET: service name for the pendingTimeDrift nudge below and the last net in reply assembly.
     const pendingServiceName = (id: string | null | undefined): string | null => {
       if (!id) return null;
       const all = calendarsForPrompt
@@ -3906,6 +3893,26 @@ stagingServe(async (req: Request) => {
     const slotOfferUnbacked = !openingHoursResult && !calledMutationTool && !calledSlots &&
       offeredTimesPrimary.length > 0 &&
       OFFER_CONTEXT_RE.test(result.text || "");
+
+    // R84 TIJDVANGNET (pendingTimeGuard.ts header; Mathieu 25-10-2026). bookPreviewMissed above is off while a
+    // fresh proposal exists, so a prose reply that proposes ANOTHER time or day than the stored pending_booking
+    // had no nudge (D09, 24-10: stored 15:00, "Ik boek dan ... om 16:00 ..., klopt dat?", no tool call). A "ja"
+    // commits the stored slot, not the text. Review of e418c561: only when NO mutation tool ran this turn (a
+    // book/cancel/reschedule/rename call may already have withdrawn or replaced the proposal that pbk still
+    // holds; the last net re-reads the database instead), never on a cancel or rename confirmation, a time the
+    // slots query of this turn proved free is an offer, and an unbacked slot offer keeps its own query nudge.
+    const pendingDrift = pendingBookFresh &&
+        !result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name)) &&
+        !cancelIntent && !confirmCancel && !confirmRename && !slotOfferUnbacked &&
+        !!result.text
+      ? findProposalMismatch(
+        result.text,
+        pbk?.start_time ?? null,
+        now,
+        collectTurnSlots(result.toolCalls).times,
+      )
+      : null;
+    const pendingTimeDrift = pendingDrift !== null;
 
     if (
       !openingHoursResult && !paymentFlowActive && !pureCancellationPolicyQuestion && !participantResult && !continuityResult && (
@@ -4075,8 +4082,12 @@ stagingServe(async (req: Request) => {
       const retryCommitted = retry.toolCalls.some((t) =>
         isCommittedMutation(t.name, t.result)
       );
+      // R84 TIJDVANGNET (review of e418c561): when the drift nudge was the one sent, its answer is a new PREVIEW,
+      // which the mutation-only branch below would throw away whenever confirmStall is also true.
       const accept = retryRaceLost || retryCommitted || (!!retry.text && (
-        (confirmStall || reschedStall || cancelCommitMissed ||
+        nudgeReason === "pendingTimeDrift"
+          ? (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))
+          : (confirmStall || reschedStall || cancelCommitMissed ||
             bookCommitMissed || renameCommitMissed || reschedCommitMissed)
           ? retry.toolCalls.some((t) =>
             MUTATION_TOOLS.has(t.name) && !isErr(t.result)
@@ -4490,43 +4501,61 @@ stagingServe(async (req: Request) => {
           customerLanguage,
         );
         // R84 TIJDVANGNET, last net (pendingTimeGuard.ts header): the pendingTimeDrift nudge above had its one
-        // chance. If the final prose still proposes another time or day than the stored proposal, and that
-        // proposal is still stored (re-read, a tool may have cleared it this turn), restate the stored slot so a
-        // "ja" can only ever commit what the customer reads. Text only; pending_booking is never written here.
-        if (!paymentFlowActive && pendingBookFresh && conversationId) {
-          const finalDrift = findProposalMismatch(
-            replyText,
-            pbk?.start_time ?? null,
-            now,
-          );
-          if (finalDrift) {
-            const { data: liveConv } = await supabase
-              .from("whatsapp_conversations").select("context").eq(
-                "id",
-                conversationId,
-              ).maybeSingle();
-            const live = ((liveConv as { context?: Record<string, unknown> } | null)
-              ?.context?.pending_booking) as typeof pbk;
-            const liveFresh = !!live?.start_time &&
-              (typeof live.at !== "number" ||
-                (Date.now() - live.at) < 15 * 60 * 1000);
-            if (
-              liveFresh && live?.start_time &&
-              findProposalMismatch(replyText, live.start_time, now)
-            ) {
-              console.warn(
-                `pending-time-guard: final reply proposed ${
-                  JSON.stringify(finalDrift)
-                } while the stored proposal starts ${live.start_time}; restated the stored slot`,
-              );
-              replyText = restatePendingProposal(
-                pendingServiceName(live.service_type_id),
-                nlWhen(live.start_time),
-                enWhen(live.start_time, ""),
-                live.customer_name ?? null,
-                customerLanguage != null,
-              );
-            }
+        // chance. If the final prose still proposes another time or day than the stored proposal, restate the
+        // stored slot so a "ja" can only ever commit what the customer reads. Text only; nothing is written.
+        // Review of e418c561: compared against the proposal stored NOW (re-read: a tool or a discarded retry may
+        // have withdrawn or replaced it this turn), never on a cancel/reschedule/rename turn or while one of those
+        // waits for its own "ja", and a time this turn's slots query proved free stays an offer.
+        const otherActionThisTurn = result.toolCalls.some((t) =>
+          t.name === "cancel_appointment" ||
+          t.name === "reschedule_appointment" ||
+          t.name === "update_booking_name"
+        );
+        const driftGroundedTimes = collectTurnSlots(result.toolCalls).times;
+        if (
+          !paymentFlowActive && conversationId && !cancelIntent &&
+          !confirmCancel && !confirmRename && !otherActionThisTurn &&
+          hasProposalMention(replyText, driftGroundedTimes)
+        ) {
+          const { data: liveConv } = await supabase
+            .from("whatsapp_conversations").select("context").eq(
+              "id",
+              conversationId,
+            ).maybeSingle();
+          const liveCtx = (liveConv as { context?: Record<string, unknown> } | null)
+            ?.context ?? {};
+          const freshMarker = (v: unknown) =>
+            !!v && (typeof (v as { at?: unknown }).at !== "number" ||
+              (Date.now() - ((v as { at: number }).at)) < 15 * 60 * 1000);
+          const otherConfirmWaiting = [
+            "pending_cancel",
+            "pending_cancel_verification",
+            "pending_rename",
+            "pending_rename_verification",
+            "pending_reschedule_verification",
+            "pending_reschedule_confirm",
+            "pending_reschedule_time_clarification",
+          ].some((k) => freshMarker(liveCtx[k]));
+          const live = liveCtx.pending_booking as typeof pbk;
+          const liveFresh = !!live?.start_time &&
+            (typeof live.at !== "number" ||
+              (Date.now() - live.at) < 15 * 60 * 1000);
+          const finalDrift = liveFresh && live?.start_time && !otherConfirmWaiting
+            ? findProposalMismatch(replyText, live.start_time, now, driftGroundedTimes)
+            : null;
+          if (finalDrift && live?.start_time) {
+            console.warn(
+              `pending-time-guard: final reply proposed ${
+                JSON.stringify(finalDrift)
+              } while the stored proposal starts ${live.start_time}; restated the stored slot`,
+            );
+            replyText = restatePendingProposal(
+              pendingServiceName(live.service_type_id),
+              nlWhen(live.start_time),
+              enWhen(live.start_time, ""),
+              live.customer_name ?? null,
+              customerLanguage != null,
+            );
           }
         }
         // R102 (shared-phone identity fix, deterministic disclosure backstop, see

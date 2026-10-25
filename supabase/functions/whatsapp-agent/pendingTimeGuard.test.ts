@@ -7,6 +7,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 import { countCustomerQuestions } from "../_shared/sanitizeReply.ts";
 import {
   findProposalMismatch,
+  hasProposalMention,
   pendingDriftNudge,
   restatePendingProposal,
 } from "./pendingTimeGuard.ts";
@@ -53,6 +54,25 @@ const TABLE: Array<[string, string, { times?: string[]; days?: string[] } | null
   ["an either/or offer is no proposal", "16:00 of 17:00 is nog vrij, welke wil je?", null],
   ["an opening-hours question is no proposal", "We sluiten woensdag om 18:00, wil je nog iets weten?", null],
   ["a day-only question is out of scope", "Wil je liever donderdag?", null],
+  // Independent review of e418c561: split sentences, lists, more time forms, prices and end times.
+  ["verb-first order, confirm in its own sentence", "Dan zet ik je op woensdag 4 november om 16:00. Klopt dat?", { times: ["16:00"] }],
+  ["no booking verb, confirm in its own sentence", "Woensdag 4 november om 16:00 op naam Joris. Klopt dat?", { times: ["16:00"] }],
+  ["a list ending in a confirm question", "Ik heb dit genoteerd:\n- Dienst: Knippen Heren\n- Datum: woensdag 4 november\n- Tijd: 16:00\nKlopt dat?", { times: ["16:00"] }],
+  ["a list with the stored slot", "Ik heb dit genoteerd:\n- Dienst: Knippen Heren\n- Datum: woensdag 4 november\n- Tijd: 15:00\nKlopt dat?", null],
+  ["a bare confirm covers one sentence only", "Je andere afspraak staat op dinsdag 10:00. Woensdag 4 november om 15:00. Klopt dat?", null],
+  ["EUR before a price", "Ik zet Knippen Heren op woensdag 4 november 15:00 voor EUR 16.50, klopt dat?", null],
+  ["kost before a price", "Ik zet Knippen Heren op woensdag 4 november 15:00, dat kost 16.50, klopt dat?", null],
+  ["an end time is no start", "Ik zet je op woensdag 15:00, we zijn open tot 18:00, klopt dat?", null],
+  ["a range with uur", "Ik zet Knippen Heren op woensdag 4 november van 15:00 uur tot 15:30 uur, klopt dat?", null],
+  ["16 uur without om", "Ik zet je woensdag 16 uur, klopt dat?", { times: ["16:00"] }],
+  ["16u30", "Ik zet je woensdag 16u30, klopt dat?", { times: ["16:30"] }],
+  ["half 5", "Ik zet je woensdag half 5, klopt dat?", { times: ["16:30"] }],
+  ["English at 4", "I'll put you down at 4 on Wednesday. Is that correct?", { times: ["16:00"] }],
+  ["German 16 Uhr", "Soll ich Sie am Mittwoch 16 Uhr eintragen?", { times: ["16:00"] }],
+  ["French 16h", "Je vous réserve mercredi 16h, c'est correct ?", { times: ["16:00"] }],
+  ["Spanish a las 4", "¿Te reservo el miércoles a las 4?", { times: ["16:00"] }],
+  ["a duration is no time", "Ik zet Balayage (2 uur) op woensdag 4 november 15:00, klopt dat?", null],
+  ["Jan 2 is no date", "Shall I book you and Jan 2 slots on Wednesday 4 November at 15:00?", null],
   ["English date order", "I'll put you down for Knippen Heren on November 11 at 15:00. Is that correct?", { days: ["November 11"] }],
   ["goedemorgen is not tomorrow", "Goedemorgen! Ik zet Knippen Heren op woensdag 4 november 15:00, klopt dat?", null],
 ];
@@ -127,4 +147,30 @@ Deno.test("R84 tijdvangnet: the nudge names what the reply said and what is stor
   assert(nudge.includes("16:00"));
   assert(nudge.includes("Knippen Heren op woensdag 4 november 15:00"));
   assert(nudge.includes("book_appointment"));
+});
+
+Deno.test("R84 tijdvangnet: a one-time question on a real free slot of this turn is an offer, not drift", () => {
+  const offer = "Op donderdag is alleen 10:00 nog vrij, wil je die?";
+  assertEquals(findProposalMismatch(offer, STORED, NOW, new Set(["10:00"])), null);
+  assertEquals(findProposalMismatch(offer, STORED, NOW)?.times, ["10:00"]);
+  // Booking words keep counting, even on a real free slot: a "ja, voor Joris" would commit the stored slot.
+  assertEquals(
+    findProposalMismatch("Op donderdag is 10:00 vrij, zal ik die voor je vastzetten?", STORED, NOW, new Set(["10:00"]))?.times,
+    ["10:00"],
+  );
+});
+
+Deno.test("R84 tijdvangnet: hasProposalMention decides whether the stored proposal is read at all", () => {
+  assert(hasProposalMention("Dat kan ik nakijken. Ik boek dan Knippen Heren op woensdag 4 november om 16:00 op naam Joris, klopt dat?"));
+  assert(hasProposalMention("Woensdag 4 november om 16:00. Klopt dat?"));
+  assert(!hasProposalMention("We zijn woensdag open tot 18:00."));
+  assert(!hasProposalMention("Op donderdag is alleen 10:00 nog vrij, wil je die?", new Set(["10:00"])));
+  assert(!hasProposalMention(""));
+});
+
+Deno.test("R84 tijdvangnet: por la mañana is the morning, not tomorrow", () => {
+  // Monday 2 November: "mañana" read as tomorrow would be Tuesday, not the stored Wednesday.
+  const monday = new Date("2026-11-02T10:00:00Z");
+  assertEquals(findProposalMismatch("Te reservo el miércoles por la mañana a las 3, ¿está bien?", STORED, monday), null);
+  assertEquals(findProposalMismatch("Te reservo mañana a las 3, ¿está bien?", STORED, monday)?.days, ["mañana"]);
 });

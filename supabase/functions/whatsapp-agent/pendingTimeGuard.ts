@@ -16,7 +16,10 @@
 // Live on v50 (25-10, D09 try 8, Haiku without thinking, no tool call): "Wil je dan Knippen Heren op woensdag
 // 4 november om 16:00, op naam Joris?" carries no booking word yet asks for a "ja" to another time than the
 // stored 15:00, so a one-time question counts too. An either/or offer ("16:00 of 17:00?") and an opening-hours
-// sentence do not. index.ts uses it twice: as a one-shot nudge
+// sentence do not. Independent review of e418c561: a bare confirm question ("Klopt dat?") also covers the sentence
+// before it ("Woensdag 4 november om 16:00. Klopt dat?"), lines without end punctuation are read as one sentence
+// (a bulleted list), and a one-time question whose time is a REAL free slot of this turn's query is an offer
+// ("Op donderdag is alleen 10:00 nog vrij, wil je die?"), never drift. index.ts uses it twice: as a one-shot nudge
 // (pendingDriftNudge) and, when the final reply still drifts and the proposal is still stored, to replace the
 // reply with restatePendingProposal, whose one question is answered by "ja" with exactly the slot the customer
 // reads. Text only: nothing here writes pending_booking. Pure module, unit-tested in pendingTimeGuard.test.ts.
@@ -28,6 +31,7 @@ const TZ = "Europe/Amsterdam";
 const PROPOSAL_RE = new RegExp(
   [
     "\\bik (?:zet|boek|plan|reserveer|noteer)\\b",
+    "\\b(?:zet|boek|plan|reserveer|noteer) ik\\b",
     "\\bzal ik\\b[^?!\\n]{0,80}\\b(?:boeken|inplannen|reserveren|vastzetten|vastleggen|noteren|zetten)\\b",
     "\\bklopt dat\\b",
     "\\bis dat (?:goed|oké|oke|ok|akkoord)",
@@ -51,6 +55,22 @@ const PROPOSAL_RE = new RegExp(
 // Prefix matches, like index.ts's reschedLang ("verzet", "verzetten", "verschoven").
 const RESCHED_RE = /\b(?:verzet|verschuif|verplaats|schuif|opschuif|verschoven|reschedul|verschieb|déplac|reprogram)/i;
 const CANCEL_RE = /\b(?:annuleer|annuleren|annulering|geannuleerd|afzeggen|cancel|stornier|annul)/i;
+// A confirm question on its own ("Klopt dat?", "Is that correct?"): it confirms the sentence before it.
+const CONFIRM_RE = new RegExp(
+  [
+    "\\bklopt (?:dat|het)\\b",
+    "\\bis dat (?:goed|oké|oke|ok|akkoord)",
+    "\\bakkoord\\s*\\?",
+    "\\bis that (?:correct|right|ok|okay|alright|fine)\\b",
+    "\\b(?:passt|stimmt) das\\b",
+    "\\bist das (?:richtig|korrekt|ok|in ordnung)\\b",
+    "\\b(?:c['’]est|est-ce) (?:correct|bon|d['’]accord)",
+    "(?:^|\\s)ça vous (?:va|convient)",
+    "\\b(?:es|está) (?:correcto|bien)\\b",
+    "\\bte parece bien\\b",
+  ].join("|"),
+  "i",
+);
 const HOURS_RE =
   /\b(?:open|geopend|opent|sluit|sluiten|dicht|gesloten|openingstijden?|opening hours|closes?|closed|geöffnet|ouvert|abierto|cerrado)\b/i;
 
@@ -76,9 +96,12 @@ const RANGE_RE = new RegExp(
   "gi",
 );
 
+// An end time ("open tot 18:00", "until 15:30") is never the start of a proposal.
+const END_TIME_RE = /\b(?:tot|until|till|bis|jusqu['’]à|hasta)\s+\d{1,2}[:.]\d{2}(?:\s*(?:uur|uhr))?/gi;
+
 function clockMentions(sentence: string): ClockMention[] {
   const out: ClockMention[] = [];
-  let s = sentence.replace(RANGE_RE, "$1");
+  let s = sentence.replace(RANGE_RE, "$1").replace(END_TIME_RE, " ");
   const take = (re: RegExp, toMention: (m: RegExpMatchArray) => ClockMention | null) => {
     s = s.replace(re, (...args) => {
       const mention = toMention(args as unknown as RegExpMatchArray);
@@ -94,8 +117,17 @@ function clockMentions(sentence: string): ClockMention[] {
   });
   // om 4 uur, um 4 Uhr
   take(/\b(?:om|um)\s+([01]?\d|2[0-3])\s?(?:uur|uhr)\b/gi, (m) => ambiguousHour(Number(m[1])));
-  // 16h30, à 16h
-  take(/\b([01]?\d|2[0-3])h([0-5]\d)\b/gi, (m) => {
+  // half 5 (= 4:30 or 16:30)
+  take(/\bhalf\s+(1[0-2]|[1-9])\b(?![:.]\d)/gi, (m) => {
+    const h = Number(m[1]) - 1;
+    const candidates = [`${pad(h)}:30`];
+    if (h >= 1 && h <= 11) candidates.push(`${pad(h + 12)}:30`);
+    return { label: candidates.find((c) => c >= "07:00" && c < "22:00") ?? candidates[0], candidates };
+  });
+  // a las 4, at 4 (not "at 4:30", "at 4pm", read above or below)
+  take(/\b(?:a las|at)\s+(1[0-2]|[1-9])\b(?![:.]\d)/gi, (m) => ambiguousHour(Number(m[1])));
+  // 16h30, 16u30
+  take(/\b([01]?\d|2[0-3])[hu]([0-5]\d)\b/gi, (m) => {
     const t = `${pad(Number(m[1]))}:${m[2]}`;
     return { label: t, candidates: [t] };
   });
@@ -103,8 +135,15 @@ function clockMentions(sentence: string): ClockMention[] {
     const t = `${pad(Number(m[1]))}:00`;
     return { label: t, candidates: [t] };
   });
-  // 16:00 / 16.00, never a price ("€15.50", "25.00 euro") or part of a longer number.
-  take(/(?<![€$£]\s?)(?<![\d.,:])\b([01]?\d|2[0-3])[:.]([0-5]\d)\b(?![.,:]?\d)(?!\s?(?:euro|eur)\b)/gi, (m) => {
+  // 16h, 16u, 16 uur, 16 Uhr without "om"/"um": only from 7 on, so "2 uur" (a duration) never counts.
+  take(/\b([7-9]|1\d|2[0-3])(?:\s?(?:uur|uhr)|[hu])(?![a-z\d])/gi, (m) => {
+    const h = Number(m[1]);
+    if (h <= 11) return ambiguousHour(h);
+    const t = `${pad(h)}:00`;
+    return { label: t, candidates: [t] };
+  });
+  // 16:00 / 16.00, never a price ("€15.50", "EUR 16.50", "kost 16.50", "16.50 euro") or part of a longer number.
+  take(/(?<!(?:[€$£]|\beur|\beuro|\bkost|\bkosten|\bprijs)\s?)(?<![\d.,:])\b([01]?\d|2[0-3])[:.]([0-5]\d)\b(?![.,:]?\d)(?!\s?(?:euro|eur)\b)/gi, (m) => {
     const t = `${pad(Number(m[1]))}:${m[2]}`;
     return { label: t, candidates: [t] };
   });
@@ -132,14 +171,17 @@ const DAY_MONTH_RE = new RegExp(
   `(?<![\\p{N}:.])(\\d{1,2})(?:e|ste|de|st|nd|rd|th)?\\.?\\s+(${byLength(MONTHS)})(?![\\p{L}])`,
   "giu",
 );
+// "Jan 2" is also a name and a number, "may 4" a verb: never read those as "Month day".
+const MONTH_FIRST = Object.fromEntries(Object.entries(MONTHS).filter(([k]) => k !== "jan" && k !== "may"));
 const MONTH_DAY_RE = new RegExp(
-  `(?<![\\p{L}])(${byLength(MONTHS)})\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?(?![\\p{N}:.])`,
+  `(?<![\\p{L}])(${byLength(MONTH_FIRST)})\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?(?![\\p{N}:.])`,
   "giu",
 );
 // Longest first, removed once read, so "overmorgen" or "pasado mañana" never also count as "morgen"/"mañana".
 const RELATIVE: Array<[RegExp, number]> = [
   [new RegExp(word("overmorgen|übermorgen|après-demain|pasado mañana|day after tomorrow"), "giu"), 2],
-  [new RegExp(word("morgen|tomorrow|demain|mañana|manana"), "giu"), 1],
+  // "por la mañana" is "in the morning", not tomorrow.
+  [new RegExp(word("morgen|tomorrow|demain|(?<!la\\s)mañana|(?<!la\\s)manana"), "giu"), 1],
   [new RegExp(word("vandaag|today|heute|aujourd['’]hui|hoy"), "giu"), 0],
 ];
 
@@ -205,10 +247,12 @@ export interface ProposalMismatch {
   days: string[];
 }
 
+// groundedTimes: the real free slots of this turn's tool calls (slotOfferGuard collectTurnSlots), HH:MM.
 export function findProposalMismatch(
   reply: string,
   storedStartIso: string | null | undefined,
   now: Date,
+  groundedTimes?: Set<string>,
 ): ProposalMismatch | null {
   if (!reply || !storedStartIso) return null;
   const stored = new Date(storedStartIso);
@@ -217,11 +261,7 @@ export function findProposalMismatch(
   const todayYmd = localSlot(now).ymd;
   const times: string[] = [];
   const days: string[] = [];
-  for (const sentence of reply.split(/(?<=[.!?])\s+|\n+/)) {
-    if (RESCHED_RE.test(sentence) || CANCEL_RE.test(sentence)) continue;
-    const clocks = clockMentions(sentence);
-    const oneTimeQuestion = sentence.includes("?") && clocks.length === 1 && !HOURS_RE.test(sentence);
-    if (!PROPOSAL_RE.test(sentence) && !oneTimeQuestion) continue;
+  for (const { sentence, clocks } of proposalSentences(reply, groundedTimes)) {
     for (const m of clocks) {
       if (!m.candidates.includes(slot.hhmm) && !times.includes(m.label)) times.push(m.label);
     }
@@ -230,6 +270,60 @@ export function findProposalMismatch(
     }
   }
   return times.length || days.length ? { times, days } : null;
+}
+
+// Sentences, where lines without end punctuation stay together (a list of "Dienst: ... / Tijd: ..." lines).
+function sentencesOf(reply: string): string[] {
+  const out: string[] = [];
+  for (const paragraph of reply.split(/\n\s*\n/)) {
+    const joined = paragraph.split("\n").map((l) => l.trim()).filter(Boolean)
+      .reduce((acc, line) => acc && !/[.!?]$/.test(acc) ? `${acc} ${line}` : (acc ? `${acc}\n${line}` : line), "");
+    for (const line of joined.split("\n")) {
+      for (const s of line.split(/(?<=[.!?])\s+/)) if (s.trim()) out.push(s.trim());
+    }
+  }
+  return out;
+}
+
+function hasDayMention(sentence: string): boolean {
+  return [WEEKDAY_RE, DAY_MONTH_RE, MONTH_DAY_RE, ...RELATIVE.map(([re]) => re)].some((re) => {
+    re.lastIndex = 0;
+    const hit = re.test(sentence);
+    re.lastIndex = 0;
+    return hit;
+  });
+}
+
+// The proposal sentences of a reply, with their clock mentions.
+function proposalSentences(
+  reply: string,
+  groundedTimes?: Set<string>,
+): Array<{ sentence: string; clocks: ClockMention[] }> {
+  const all = sentencesOf(reply);
+  const out: Array<{ sentence: string; clocks: ClockMention[] }> = [];
+  all.forEach((sentence, i) => {
+    if (RESCHED_RE.test(sentence) || CANCEL_RE.test(sentence)) return;
+    const clocks = clockMentions(sentence);
+    const next = all[i + 1];
+    const confirmedByNext = !!next && CONFIRM_RE.test(next) && clockMentions(next).length === 0 &&
+      !hasDayMention(next);
+    if (PROPOSAL_RE.test(sentence) || confirmedByNext) {
+      out.push({ sentence, clocks });
+      return;
+    }
+    const oneTimeQuestion = sentence.includes("?") && clocks.length === 1 && !HOURS_RE.test(sentence);
+    const grounded = !!groundedTimes && clocks.every((c) => c.candidates.some((x) => groundedTimes.has(x)));
+    if (oneTimeQuestion && !grounded) out.push({ sentence, clocks });
+  });
+  return out;
+}
+
+// Does the reply propose any clock time or day at all? (index.ts reads the stored proposal only then.)
+export function hasProposalMention(reply: string, groundedTimes?: Set<string>): boolean {
+  if (!reply) return false;
+  return proposalSentences(reply, groundedTimes).some(({ sentence, clocks }) =>
+    clocks.length > 0 || hasDayMention(sentence)
+  );
 }
 
 // The one-shot nudge (index.ts nudge layer), in the same "[systeem]" register as its siblings.
