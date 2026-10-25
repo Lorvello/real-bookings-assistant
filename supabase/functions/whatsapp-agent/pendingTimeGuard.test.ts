@@ -44,7 +44,15 @@ const TABLE: Array<[string, string, { times?: string[]; days?: string[] } | null
   ["German", "Soll ich Herrenhaarschnitt am Mittwoch um 16:00 buchen?", { times: ["16:00"] }],
   ["German, stored weekday and time", "Soll ich Herrenhaarschnitt am Mittwoch um 15:00 buchen?", null],
   ["French 16h30", "Je vous réserve Coupe homme mercredi à 16h30, c'est correct ?", { times: ["16:30"] }],
-  ["an offer without proposal words is out of scope", "Wil je liever 16:00?", null],
+  // Live on v50 (25-10, D09 try 8, Haiku without thinking, no tool call): a question for a "ja" to another time.
+  ["D09 try 8: a one-time question without booking words", "Dat kan ik nakijken. Wil je dan Knippen Heren op woensdag 4 november om 16:00, op naam Joris?", { times: ["16:00"] }],
+  ["a one-time offer is a question for a ja too", "Wil je liever 16:00?", { times: ["16:00"] }],
+  ["is 16:00 ook goed", "Is 16:00 ook goed?", { times: ["16:00"] }],
+  ["a one-time question on the stored time", "Wil je 15:00 houden?", null],
+  ["a one-time question with another day", "Wil je dan donderdag om 15:00?", { days: ["donderdag"] }],
+  ["an either/or offer is no proposal", "16:00 of 17:00 is nog vrij, welke wil je?", null],
+  ["an opening-hours question is no proposal", "We sluiten woensdag om 18:00, wil je nog iets weten?", null],
+  ["a day-only question is out of scope", "Wil je liever donderdag?", null],
   ["English date order", "I'll put you down for Knippen Heren on November 11 at 15:00. Is that correct?", { days: ["November 11"] }],
   ["goedemorgen is not tomorrow", "Goedemorgen! Ik zet Knippen Heren op woensdag 4 november 15:00, klopt dat?", null],
 ];

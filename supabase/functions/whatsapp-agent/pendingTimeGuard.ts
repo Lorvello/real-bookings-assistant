@@ -10,9 +10,13 @@
 // without thinking): preview 15:00, then "oh wacht, kan het om 16:00?", no tool call, reply "Ik boek dan
 // Knippen Heren op woensdag 4 november om 16:00 op naam Joris, klopt dat?" while 15:00 stayed stored.
 //
-// findProposalMismatch reads only PROPOSAL sentences (booking or confirm-question words; never a reschedule
-// or cancel sentence, which is about an existing appointment) and returns the clock times and day mentions in
-// them that differ from the stored slot in Europe/Amsterdam. index.ts uses it twice: as a one-shot nudge
+// findProposalMismatch reads only PROPOSAL sentences (booking or confirm-question words, or a question naming
+// exactly one clock time; never a reschedule or cancel sentence, which is about an existing appointment) and
+// returns the clock times and day mentions in them that differ from the stored slot in Europe/Amsterdam.
+// Live on v50 (25-10, D09 try 8, Haiku without thinking, no tool call): "Wil je dan Knippen Heren op woensdag
+// 4 november om 16:00, op naam Joris?" carries no booking word yet asks for a "ja" to another time than the
+// stored 15:00, so a one-time question counts too. An either/or offer ("16:00 of 17:00?") and an opening-hours
+// sentence do not. index.ts uses it twice: as a one-shot nudge
 // (pendingDriftNudge) and, when the final reply still drifts and the proposal is still stored, to replace the
 // reply with restatePendingProposal, whose one question is answered by "ja" with exactly the slot the customer
 // reads. Text only: nothing here writes pending_booking. Pure module, unit-tested in pendingTimeGuard.test.ts.
@@ -47,6 +51,8 @@ const PROPOSAL_RE = new RegExp(
 // Prefix matches, like index.ts's reschedLang ("verzet", "verzetten", "verschoven").
 const RESCHED_RE = /\b(?:verzet|verschuif|verplaats|schuif|opschuif|verschoven|reschedul|verschieb|déplac|reprogram)/i;
 const CANCEL_RE = /\b(?:annuleer|annuleren|annulering|geannuleerd|afzeggen|cancel|stornier|annul)/i;
+const HOURS_RE =
+  /\b(?:open|geopend|opent|sluit|sluiten|dicht|gesloten|openingstijden?|opening hours|closes?|closed|geöffnet|ouvert|abierto|cerrado)\b/i;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -212,8 +218,11 @@ export function findProposalMismatch(
   const times: string[] = [];
   const days: string[] = [];
   for (const sentence of reply.split(/(?<=[.!?])\s+|\n+/)) {
-    if (!PROPOSAL_RE.test(sentence) || RESCHED_RE.test(sentence) || CANCEL_RE.test(sentence)) continue;
-    for (const m of clockMentions(sentence)) {
+    if (RESCHED_RE.test(sentence) || CANCEL_RE.test(sentence)) continue;
+    const clocks = clockMentions(sentence);
+    const oneTimeQuestion = sentence.includes("?") && clocks.length === 1 && !HOURS_RE.test(sentence);
+    if (!PROPOSAL_RE.test(sentence) && !oneTimeQuestion) continue;
+    for (const m of clocks) {
       if (!m.candidates.includes(slot.hhmm) && !times.includes(m.label)) times.push(m.label);
     }
     for (const d of dayMismatches(sentence, slot, todayYmd)) {
