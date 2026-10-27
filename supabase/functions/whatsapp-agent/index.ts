@@ -3632,13 +3632,24 @@ Deno.serve(async (req) => {
     // customer message, never from model prose). On such a turn the second call buys nothing and costs
     // a full model round (~0.55-0.85 s on Groq). So the loop now also stops on a preview that
     // deterministicPreview can template, exactly like B1 stops on a committed mutation.
-    // Kept OUT of the shortcut: a server-detected book confirmation and a message that reads as a bare
-    // affirmation, because there the model's own follow-up text feeds confirmStall (a nudge that needs
-    // the "?" in that text), and those paths stay exactly as they were. `previewStopped` records that
-    // the shortcut fired, so emptyNoAction below does not mistake the intentionally empty text for a
-    // model that answered nothing. The stall-retry runAgent further down keeps isCommittedMutation.
+    // Kept OUT of the shortcut (independent review of 6264504d, findings 3 and 4):
+    // - every server-detected confirmation (book, book verification, owner-restated book, cancel,
+    //   cancel verification, rename, reschedule verification): there round 2 may itself commit, and
+    //   the *CommitMissed retries must see the same tool calls as before;
+    // - a message that reads as a bare affirmation: the model's own follow-up text feeds confirmStall
+    //   (a nudge that needs the "?" in that text);
+    // - a message with cancel or reschedule words (mutationIntentOnCurrentMessage, whose cancel pattern
+    //   covers cancelIntent's words): "verzet mijn afspraak en boek ook woensdag" can need a SECOND
+    //   action in round 2, and stopping at the booking preview would silently drop it.
+    // `previewStopped` records that the shortcut fired, so emptyNoAction below does not mistake the
+    // intentionally empty text for a model that answered nothing; `previewStopCall` is the exact call
+    // that fired it, so reply assembly can always template THAT preview (finding 5). The stall-retry
+    // runAgent further down keeps isCommittedMutation.
     let previewStopped = false;
-    const previewShortcutAllowed = !confirmBook &&
+    let previewStopCall: { name: string; result: unknown } | null = null;
+    const previewShortcutAllowed = !confirmBook && !confirmBookVerification &&
+      !confirmBookOwnerRestated && !confirmCancel && !confirmCancelVerification &&
+      !confirmRename && !confirmRescheduleVerification && !mutationIntentOnCurrentMessage &&
       !(BARE_AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower));
     const stopOnCommitOrPreview = (name: string, toolResult: unknown): boolean => {
       if (isCommittedMutation(name, toolResult)) return true;
@@ -3647,6 +3658,7 @@ Deno.serve(async (req) => {
         deterministicPreview([{ name, result: toolResult }], customerLanguage) !== null
       ) {
         previewStopped = true;
+        previewStopCall = { name, result: toolResult };
         return true;
       }
       return false;
@@ -4343,7 +4355,12 @@ Deno.serve(async (req) => {
       // pending_booking (the commit reuses it). This makes the "confirmed 25 juni / stored 30 juni"
       // divergence structurally impossible. Only fires when book_appointment returned
       // needs_confirmation + proposal; if it didn't (no preview this turn), fall through unchanged.
-      const preview = deterministicPreview(result.toolCalls, customerLanguage);
+      // S2: when the loop stopped on a preview, that exact call is templatable by construction; fall
+      // back to it if the latest preview of the turn is not (e.g. a parallel second preview with an
+      // empty `when`), so a stopped turn can never end with an empty reply.
+      const stopCall = previewStopCall as { name: string; result: unknown } | null;
+      const preview = deterministicPreview(result.toolCalls, customerLanguage) ??
+        (previewStopped && stopCall ? deterministicPreview([stopCall], customerLanguage) : null);
       const slotTaken = await deterministicSlotTaken(
         result.toolCalls,
         customerLanguage,

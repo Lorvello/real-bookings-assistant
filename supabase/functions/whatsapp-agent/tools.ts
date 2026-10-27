@@ -828,13 +828,18 @@ export async function getCalendarWeeklyHours(
   // availability_schedules.id, checked read-only in pg_constraint on 2026-10-27), so the rows are the
   // same rows the second query returned. The per-day aggregation below is order-independent (earliest
   // start, latest end), so the embedded order does not matter either.
-  const { data: scheds } = await supabase
+  // The relation is pinned to that foreign key by name, so a second FK added later can never make the
+  // embed ambiguous (PostgREST PGRST201) and silently null every calendar's hours (review 71bacd6f #8).
+  const { data: scheds, error: schedErr } = await supabase
     .from("availability_schedules")
-    .select("id, is_default, created_at, availability_rules(day_of_week, start_time, end_time, is_available)")
+    .select(
+      "id, is_default, created_at, availability_rules!availability_rules_schedule_id_fkey(day_of_week, start_time, end_time, is_available)",
+    )
     .eq("calendar_id", calendarId)
     .order("is_default", { ascending: false })
     .order("created_at", { ascending: true })
     .limit(1);
+  if (schedErr) console.error(`[weekly-hours] schedule+rules read failed for calendar ${calendarId}: ${schedErr.message}`);
   const schedule = (scheds as Array<{ id: string; availability_rules?: unknown[] | null }> | null)?.[0];
   if (!schedule) return null;
   const rules = schedule.availability_rules ?? null;
