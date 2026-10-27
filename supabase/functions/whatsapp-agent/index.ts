@@ -150,6 +150,7 @@ import {
   staffRequestOverTopic,
 } from "./preFilterCalendars.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
+import { emptyReplyFallback } from "./emptyReplyFallback.ts";
 import {
   countCustomerQuestions,
   sanitizeReply,
@@ -5140,8 +5141,7 @@ Deno.serve(async (req) => {
     // WhatsApp send and the persisted transcript so they always match.
     if (keepCancellation) replyText = customerLanguage ? KEEP_REPLY_EN : KEEP_REPLY_NL;
     if (openingHoursResult) replyText = openingHoursResult.text;
-    const reply = sanitizeReply(replyText) ||
-      "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
+    const reply = sanitizeReply(replyText) || emptyReplyFallback(customerLanguage);
 
     if (paymentOfferToPersist && paymentCondition && conversationId) {
       const {data: current,error: readError}=await supabase.from("whatsapp_conversations").select("context").eq("id",conversationId).eq("calendar_id",calendar_id).maybeSingle();

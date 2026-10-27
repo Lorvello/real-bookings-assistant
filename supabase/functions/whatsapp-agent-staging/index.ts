@@ -1,10 +1,10 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 dfb51e8d6fa1220f490abfb1114129c68ead004fa83ee13aa5edf2a3a324341c)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 9de1a4e9ab8cead0c1f0bfc4320bcccf499e241834514f9b4c311ee69e8cce23)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
-// Dit is `whatsapp-agent` met exact 31 herschreven regels. Alles daarbuiten is
+// Dit is `whatsapp-agent` met exact 32 herschreven regels. Alles daarbuiten is
 // byte-identiek aan de productiefunctie, zodat een meting op deze functie een meting op de
 // echte agent is.
 //
@@ -170,6 +170,7 @@ import {
   staffRequestOverTopic,
 } from "../whatsapp-agent/preFilterCalendars.ts";
 import { sendWhatsAppText } from "./recorderSend.ts";
+import { emptyReplyFallback } from "../whatsapp-agent/emptyReplyFallback.ts";
 import {
   countCustomerQuestions,
   sanitizeReply,
@@ -5160,8 +5161,7 @@ stagingServe(async (req: Request) => {
     // WhatsApp send and the persisted transcript so they always match.
     if (keepCancellation) replyText = customerLanguage ? KEEP_REPLY_EN : KEEP_REPLY_NL;
     if (openingHoursResult) replyText = openingHoursResult.text;
-    const reply = sanitizeReply(replyText) ||
-      "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
+    const reply = sanitizeReply(replyText) || emptyReplyFallback(customerLanguage);
 
     if (paymentOfferToPersist && paymentCondition && conversationId) {
       const {data: current,error: readError}=await supabase.from("whatsapp_conversations").select("context").eq("id",conversationId).eq("calendar_id",calendar_id).maybeSingle();
