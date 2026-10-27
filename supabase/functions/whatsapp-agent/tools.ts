@@ -821,20 +821,23 @@ export async function getCalendarWeeklyHours(
   supabase: SupabaseClient,
   calendarId: string,
 ): Promise<{ byDay: Record<string, DayHours>; text: string | null } | null> {
-  // The default schedule (fallback: earliest-created) for this calendar.
+  // The default schedule (fallback: earliest-created) for this calendar, WITH its rules in the same
+  // request. S1 SPEED (2026-10-27): this used to be two round-trips (schedule, then its rules by
+  // schedule_id), which put a whole extra ~25-90 ms wave in front of the first model call. PostgREST
+  // embeds availability_rules through its only foreign key (availability_rules_schedule_id_fkey ->
+  // availability_schedules.id, checked read-only in pg_constraint on 2026-10-27), so the rows are the
+  // same rows the second query returned. The per-day aggregation below is order-independent (earliest
+  // start, latest end), so the embedded order does not matter either.
   const { data: scheds } = await supabase
     .from("availability_schedules")
-    .select("id, is_default, created_at")
+    .select("id, is_default, created_at, availability_rules(day_of_week, start_time, end_time, is_available)")
     .eq("calendar_id", calendarId)
     .order("is_default", { ascending: false })
     .order("created_at", { ascending: true })
     .limit(1);
-  const schedule = (scheds as Array<{ id: string }> | null)?.[0];
+  const schedule = (scheds as Array<{ id: string; availability_rules?: unknown[] | null }> | null)?.[0];
   if (!schedule) return null;
-  const { data: rules } = await supabase
-    .from("availability_rules")
-    .select("day_of_week, start_time, end_time, is_available")
-    .eq("schedule_id", schedule.id);
+  const rules = schedule.availability_rules ?? null;
   const ruleList = (rules as
     | Array<
       {
