@@ -1,6 +1,6 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 cb564a9aa4847dc212c1686a8849290e406ed3f290374ed05f59979374504b4c)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 a048b5b23800832ce38d6ea7d029ec23475999e3f06de02e534f2c206fa6f89e)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
@@ -1227,6 +1227,95 @@ stagingServe(async (req: Request) => {
     // called much further down alongside the other reply-rewrite backstops.
     let singleCandidateCalendarName: string | null = null;
 
+    // S1 SPEED (2026-10-27, launch-ready-loop/ONTWERP_SNELHEID_2026-10-27.md §3): the six reads
+    // below need only what phases 1 and 2 already returned (phone, calendar_id, the calendar
+    // allowlist, the conversation id, the business data), yet they ran ONE AFTER ANOTHER further
+    // down this function, ~25-35 ms each, all in front of the first model call (measured on
+    // staging: ~470 ms of database wait before the model starts, in ~12 sequential waves). Each
+    // query is now a small factory; the reads START here, together, and every consumer further down
+    // awaits `(earlyPromise ?? factory())` at the exact place its query used to run. Same queries,
+    // same arguments, same conditions; only the moment the request leaves moves earlier. The `??`
+    // fallback keeps the old inline behaviour if a start condition below ever stops matching its
+    // consumer's condition. `early()` attaches a no-op catch so a read that is still in flight when
+    // an earlier step throws can never surface as an unhandled rejection; awaiting the promise still
+    // rejects exactly as the inline await did.
+    const early = <T>(q: PromiseLike<T>): Promise<T> => {
+      const p = Promise.resolve(q);
+      p.catch(() => {});
+      return p;
+    };
+    // The same expression as `conversationId` further down (declared there, after the calendar block).
+    const earlyConversationId: string | null = (conv as { id?: string } | null)?.id ?? null;
+    const qPriorBookingCount = () =>
+      supabase
+        .from("bookings").select("id", { count: "exact", head: true })
+        .eq("customer_phone", phone).in(
+          "calendar_id",
+          calendars.map((c) => c.id),
+        );
+    const qSetServices = () =>
+      supabase
+        .from("service_types").select(
+          "id, name, duration, price, description, calendar_id, supply_type",
+        )
+        .in("calendar_id", calendars.map((c) => c.id)).eq("is_active", true).or(
+          "is_deleted.is.null,is_deleted.eq.false",
+        );
+    const qSharedMsgs = (convId: string) =>
+      supabase
+        .from("whatsapp_messages")
+        .select("id, direction, content, created_at, meta_timestamp")
+        .eq("conversation_id", convId)
+        .order("created_at", { ascending: false })
+        .limit(12);
+    const qInboundMsgs = (convId: string) =>
+      supabase
+        .from("whatsapp_messages")
+        .select("content")
+        .eq("conversation_id", convId)
+        .eq("direction", "inbound")
+        .order("created_at", { ascending: false })
+        .limit(40);
+    const qUpcomingServiceAcrossCalendars = () =>
+      supabase.from("bookings").select("service_types(name)")
+        .eq("customer_phone", phone).in(
+          "calendar_id",
+          calendars.map((c) => c.id),
+        )
+        .in("status", ["confirmed", "pending"]).gt(
+          "start_time",
+          new Date().toISOString(),
+        )
+        .order("start_time", { ascending: true }).limit(1).maybeSingle();
+    const qUpcomingPolicyRows = () =>
+      supabase
+        .from("bookings")
+        .select("calendar_id")
+        .eq("customer_phone", phone)
+        .in("calendar_id", calendars.map((c) => c.id))
+        .in("status", ["confirmed", "pending"])
+        .gt("start_time", new Date().toISOString())
+        .order("start_time", { ascending: true })
+        .limit(2);
+    // Start conditions = the consumers' own conditions. `businessData.cancellation_policy` is only
+    // ever written by the policy block that consumes earlyUpcomingPolicyRows, so reading it here
+    // gives the same answer as reading it there.
+    const earlyPriorBookingCount = early(qPriorBookingCount());
+    const earlySetServices = isMultiCalendar ? early(qSetServices()) : null;
+    const earlySharedMsgs = earlyConversationId ? early(qSharedMsgs(earlyConversationId)) : null;
+    const earlyInboundMsgs = earlyConversationId && isMultiCalendar
+      ? early(qInboundMsgs(earlyConversationId))
+      : null;
+    const earlyUpcomingServiceAcrossCalendars = isMultiCalendar
+      ? early(qUpcomingServiceAcrossCalendars())
+      : null;
+    const earlyUpcomingPolicyRows = businessData &&
+        !(typeof businessData?.cancellation_policy === "string" &&
+          (businessData.cancellation_policy as string).trim().length > 0) &&
+        isMultiCalendar && calendars.length > 1
+      ? early(qUpcomingPolicyRows())
+      : null;
+
     // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, see identityDisambiguationGuard.ts's
     // crossIdentityBookRisk for the full root-cause/design reasoning): does THIS phone have ANY
     // real booking on file anywhere in the owner's calendar allowlist (any status, any time)?
@@ -1238,12 +1327,7 @@ stagingServe(async (req: Request) => {
     // distinguish "a genuine other identity could already be on file for this phone" (any prior
     // booking, even cancelled/expired, is proof someone has used this phone with this business
     // before) from "this is this phone's first-ever contact" (nothing to be in conflict with).
-    const { count: priorBookingCount } = await supabase
-      .from("bookings").select("id", { count: "exact", head: true })
-      .eq("customer_phone", phone).in(
-        "calendar_id",
-        calendars.map((c) => c.id),
-      );
+    const { count: priorBookingCount } = await (earlyPriorBookingCount ?? qPriorBookingCount());
     const priorRealBookingExists = (priorBookingCount ?? 0) > 0;
 
     // Per-calendar services for the prompt's <kalenders> block, ONLY when multi-calendar
@@ -1269,14 +1353,7 @@ stagingServe(async (req: Request) => {
     // calendar plus the other fetched calendars), for latestEndTodayMinutes below.
     const byDayByCal = new Map<string, Record<string, { open: boolean; start?: string; end?: string }> | null>();
     if (isMultiCalendar) {
-      const ids = calendars.map((c) => c.id);
-      const { data: setSvc } = await supabase
-        .from("service_types").select(
-          "id, name, duration, price, description, calendar_id, supply_type",
-        )
-        .in("calendar_id", ids).eq("is_active", true).or(
-          "is_deleted.is.null,is_deleted.eq.false",
-        );
+      const { data: setSvc } = await (earlySetServices ?? qSetServices());
       const byCal = new Map<string, ServiceInfo[]>();
       serviceCalendarMap = {};
       for (
@@ -1341,9 +1418,16 @@ stagingServe(async (req: Request) => {
       const otherCals = calendars.filter((c) =>
         c.id !== calendar_id && candidateIds.has(c.id)
       );
-      const otherHours = await Promise.all(
+      // S1 SPEED: the per-calendar hours and the per-calendar policies (below) depend only on
+      // candidateIds, not on each other; both now start here and are awaited where they were used.
+      const otherHoursP = early(Promise.all(
         otherCals.map((c) => getCalendarWeeklyHours(supabase, c.id)),
-      );
+      ));
+      const policyCals = calendars.filter((c) => candidateIds.has(c.id));
+      const policyByCalP = early(Promise.all(
+        policyCals.map((c) => getCalendarPolicy(supabase, c.id)),
+      ));
+      const otherHours = await otherHoursP;
       otherCals.forEach((c, i) =>
         hoursByCal.set(c.id, otherHours[i]?.text ?? null)
       );
@@ -1361,10 +1445,7 @@ stagingServe(async (req: Request) => {
       // (businessData.business_name) directly here since that const is not yet in scope.
       const businessNameForPolicy =
         (businessData?.business_name as string | null) ?? "ons bedrijf";
-      const policyCals = calendars.filter((c) => candidateIds.has(c.id));
-      const policyByCal = await Promise.all(
-        policyCals.map((c) => getCalendarPolicy(supabase, c.id)),
-      );
+      const policyByCal = await policyByCalP;
       const policyTextByCal = new Map<string, string | null>(
         policyCals.map((c, i) => {
           const p = policyByCal[i];
@@ -1502,12 +1583,7 @@ stagingServe(async (req: Request) => {
       }
     > = [];
     if (conversationId) {
-      const { data: msgs } = await supabase
-        .from("whatsapp_messages")
-        .select("id, direction, content, created_at, meta_timestamp")
-        .eq("conversation_id", conversationId)
-        .order("created_at", { ascending: false })
-        .limit(12);
+      const { data: msgs } = await (earlySharedMsgs ?? qSharedMsgs(conversationId));
       sharedMsgsDesc = (msgs as Array<
         {
           id: string;
@@ -1595,13 +1671,7 @@ stagingServe(async (req: Request) => {
     // (server-side gate, prompt-only steering did not reliably close this against the live model).
     let inboundTexts: string[] = [String(message ?? "")];
     if (conversationId && isMultiCalendar) {
-      const { data: inboundMsgs } = await supabase
-        .from("whatsapp_messages")
-        .select("content")
-        .eq("conversation_id", conversationId)
-        .eq("direction", "inbound")
-        .order("created_at", { ascending: false })
-        .limit(40);
+      const { data: inboundMsgs } = await (earlyInboundMsgs ?? qInboundMsgs(conversationId));
       inboundTexts = [
         ...((inboundMsgs as Array<{ content: string | null }> | null) ?? [])
           .map((m) => m.content ?? ""),
@@ -1883,16 +1953,7 @@ stagingServe(async (req: Request) => {
     // tenants are untouched (still use the cheap phase-1 result, zero added latency, zero
     // behavior change) since isMultiCalendar is false there and this query never runs.
     const upcomingBookingServiceNameAcrossCalendars = isMultiCalendar
-      ? ((await supabase.from("bookings").select("service_types(name)")
-        .eq("customer_phone", phone).in(
-          "calendar_id",
-          calendars.map((c) => c.id),
-        )
-        .in("status", ["confirmed", "pending"]).gt(
-          "start_time",
-          new Date().toISOString(),
-        )
-        .order("start_time", { ascending: true }).limit(1).maybeSingle())
+      ? ((await (earlyUpcomingServiceAcrossCalendars ?? qUpcomingServiceAcrossCalendars()))
         .data as { service_types?: { name?: string } } | null)?.service_types
         ?.name ?? null
       : null;
@@ -2264,15 +2325,7 @@ stagingServe(async (req: Request) => {
       // "meerdere_afspraken" disambiguation, which this text-only inject does not replicate, to
       // stay scoped to composing the policy TEXT, not the tool's disambiguation flow).
       if (isMultiCalendar && calendars.length > 1) {
-        const { data: upcoming } = await supabase
-          .from("bookings")
-          .select("calendar_id")
-          .eq("customer_phone", phone)
-          .in("calendar_id", calendars.map((c) => c.id))
-          .in("status", ["confirmed", "pending"])
-          .gt("start_time", new Date().toISOString())
-          .order("start_time", { ascending: true })
-          .limit(2);
+        const { data: upcoming } = await (earlyUpcomingPolicyRows ?? qUpcomingPolicyRows());
         const rows = (upcoming as Array<{ calendar_id: string }> | null) ?? [];
         if (rows.length === 1 && rows[0].calendar_id !== calendar_id) {
           const ownPolicy = await getCalendarPolicy(
