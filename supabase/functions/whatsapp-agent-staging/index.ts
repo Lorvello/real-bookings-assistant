@@ -1,6 +1,6 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 a048b5b23800832ce38d6ea7d029ec23475999e3f06de02e534f2c206fa6f89e)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 4d255ce7fc88dc49851f784107f982ecd4981b8a59f1042bb8bcab2ac7461cac)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
@@ -422,6 +422,11 @@ interface BookingToolResult extends Record<string, unknown> {
   booking_renamed?: boolean;
   new_name?: string;
 }
+
+// The bare-affirmation prefix confirmStall uses (R29). Module-level so the S2 preview shortcut before
+// the agent call and confirmStall after it read the SAME pattern.
+const BARE_AFFIRM_RE =
+  /^\s*(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|klopt|akkoord|is goed|oui|ouais|sí|sì|si|sim|certo|claro|perfetto|parfait)\b/i;
 
 function deterministicPreview(
   toolCalls: { name: string; result: unknown }[],
@@ -3640,6 +3645,32 @@ stagingServe(async (req: Request) => {
     const openingHoursResult = openingHoursRequest && !paymentFlowActive && !participantResult && !policyOnlyResult &&
       !continuityResult && !paymentPreviewed && !paymentFollowupReply
       ? await answerOpeningHours(supabase, openingHoursRequest, calendars) : null;
+    // S2 SPEED (2026-10-27, launch-ready-loop/ONTWERP_SNELHEID_2026-10-27.md §3). Measured on staging:
+    // 9 of 15 duel turns were a book_appointment PREVIEW followed by a second model call whose prose is
+    // then DISCARDED, because reply assembly below (ITEM 12) overrides it with deterministicPreview's
+    // server template (plus the R20 second-service and R128 price additions, both built from the raw
+    // customer message, never from model prose). On such a turn the second call buys nothing and costs
+    // a full model round (~0.55-0.85 s on Groq). So the loop now also stops on a preview that
+    // deterministicPreview can template, exactly like B1 stops on a committed mutation.
+    // Kept OUT of the shortcut: a server-detected book confirmation and a message that reads as a bare
+    // affirmation, because there the model's own follow-up text feeds confirmStall (a nudge that needs
+    // the "?" in that text), and those paths stay exactly as they were. `previewStopped` records that
+    // the shortcut fired, so emptyNoAction below does not mistake the intentionally empty text for a
+    // model that answered nothing. The stall-retry runAgent further down keeps isCommittedMutation.
+    let previewStopped = false;
+    const previewShortcutAllowed = !confirmBook &&
+      !(BARE_AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower));
+    const stopOnCommitOrPreview = (name: string, toolResult: unknown): boolean => {
+      if (isCommittedMutation(name, toolResult)) return true;
+      if (
+        previewShortcutAllowed && name === "book_appointment" &&
+        deterministicPreview([{ name, result: toolResult }], customerLanguage) !== null
+      ) {
+        previewStopped = true;
+        return true;
+      }
+      return false;
+    };
     let result: AgentResult = openingHoursResult
       ? {text:openingHoursResult.text,steps:0,toolCalls:[]}
       : paymentFlowActive
@@ -3659,7 +3690,7 @@ stagingServe(async (req: Request) => {
         execute,
         maxSteps: 6,
         temperature: 0.2,
-        stopOnToolResult: isCommittedMutation,
+        stopOnToolResult: stopOnCommitOrPreview,
       }));
 
     // Safety net for "announce-then-stop": gpt-5-mini sometimes emits a mid-action filler
@@ -3739,9 +3770,7 @@ stagingServe(async (req: Request) => {
     // is false on a clean "Ja" or "Klopt"). It only stops the nudge-and-retry from firing on
     // messages that were never a clean confirmation in the first place, where the model's own
     // "which one?" follow-up was already the CORRECT behavior.
-    const bareAffirm =
-      /^\s*(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|klopt|akkoord|is goed|oui|ouais|sí|sì|si|sim|certo|claro|perfetto|parfait)\b/i
-        .test(msgLower) && !NEGATE_RE.test(msgLower);
+    const bareAffirm = BARE_AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower);
     const confirmStall = !succeededMutation && bareAffirm &&
       !ambiguousConfirm && !cancelPreviewMissed && !confirmCancel &&
       !!result.text && result.text.includes("?");
@@ -3929,7 +3958,7 @@ stagingServe(async (req: Request) => {
     // answer. Empty text AFTER a successful mutation is handled deterministically later, so
     // this targets only the no-success case. Excludes cancelCommitMissed (handled above).
     const emptyNoAction = !(result.text || "").trim() && !succeededMutation &&
-      !cancelCommitMissed;
+      !cancelCommitMissed && !previewStopped;
 
     // P0-1: the reply OFFERS concrete clock times but the model called NO get_available_slots this
     // turn (and no book/reschedule that resolved real slots) -> the offer has zero server backing.
