@@ -416,12 +416,8 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                         </div>
                       ) : (
                         <div>
-                          <div className="flex items-baseline justify-center mb-2">
-                            <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">{t('pricing.plans.enterprise.fromPriceDesktop', 'From €300')}</span>
-                            <span className="text-slate-400 text-lg ml-2">{t('pricing.perMonth', '/month')}</span>
-                          </div>
-                          <div className="text-xs text-slate-500">
-                            {t('pricing.customPricing', 'Custom pricing based on your needs')}
+                          <div className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">
+                            {t('pricing.customPricingShort', 'Custom pricing')}
                           </div>
                         </div>
                       )}
@@ -548,11 +544,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                                 </div>
                               ) : (
                                 <div>
-                                  <div className="flex items-baseline justify-center mb-1">
-                                    <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg">{t('pricing.plans.enterprise.fromPriceDesktop', 'From €300')}</span>
-                                    <span className="text-slate-300/90 text-xs ml-1">{t('pricing.perMonth', '/month')}</span>
-                                  </div>
-                                  <div className="text-[9px] text-slate-500">
+                                  <div className="text-lg font-semibold text-emerald-400 drop-shadow-lg">
                                     {t('pricing.customPricingShort', 'Custom pricing')}
                                   </div>
                                 </div>

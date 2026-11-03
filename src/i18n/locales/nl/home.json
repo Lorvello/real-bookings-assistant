@@ -206,7 +206,6 @@
         "descriptionProvisioned": "Enterprise-voorstel op maat met een door ons geleverd WhatsApp-nummer; omvang, limieten en ondersteuning leggen we schriftelijk vast.",
         "contactSuccess": "Bedankt voor je interesse. Als je aanvraag past, nemen we contact op via de gegevens die je hebt ingevuld.",
         "cta": "Neem contact op met sales",
-        "fromPriceDesktop": "Vanaf €300",
         "claims": {
           "proposalScope": { "text": "Enterprise-voorstel op maat", "tooltip": "Inbegrepen modules, gebruikslimieten, prijzen en opleverdata leggen we schriftelijk vast." },
           "userAccessByAgreement": { "text": "Gebruikerstoegang en rechten op afspraak", "tooltip": "Aantallen gebruikers, rollen en rechten zijn alleen inbegrepen als ze in het voorstel staan." },

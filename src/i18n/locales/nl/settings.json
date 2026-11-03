@@ -556,7 +556,7 @@
         }
       },
       "planTile": {
-        "startingAt": "Vanaf €300",
+        "customPrice": "Prijs op maat",
         "perMonth": "/maand",
         "customPricing": "Aangepaste prijs voor grote organisaties",
         "billedAnnually": "Jaarlijks gefactureerd (€{{amount}}/jaar)"

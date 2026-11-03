@@ -319,11 +319,11 @@ const BillingTabContent: React.FC = () => {
     .map((tier) => {
       const isEnterprise = tier.tier_name === 'enterprise';
       let displayPrice: string;
-      const billingText = t('settings.billing.planTile.perMonth', '/month');
+      const billingText = isEnterprise ? '' : t('settings.billing.planTile.perMonth', '/month');
       let savingsText: string | undefined;
 
       if (isEnterprise) {
-        displayPrice = t('settings.billing.planTile.startingAt', 'Starting at €300');
+        displayPrice = t('settings.billing.planTile.customPrice', 'Custom pricing');
         savingsText = t('settings.billing.planTile.customPricing', 'Custom pricing for large organizations');
       } else if (billingCycle === 'monthly') {
         displayPrice = `€${tier.price_monthly}`;

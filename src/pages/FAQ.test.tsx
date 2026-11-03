@@ -32,6 +32,13 @@ vi.mock('@/components/ui/accordion', () => ({
 import FAQ from '@/pages/FAQ';
 
 describe('FAQ public capability claims', () => {
+  it('describes the paid plans and Enterprise without inventing a free plan or starting price', () => {
+    render(<FAQ />);
+
+    expect(screen.getByText(/Starter costs €30\/month, Professional costs €60\/month, and Enterprise pricing is customized/i)).toBeInTheDocument();
+    expect(screen.queryByText(/we offer a free plan/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Enterprise from €300/i)).not.toBeInTheDocument();
+  });
   afterEach(() => vi.unstubAllEnvs());
 
   it.each([

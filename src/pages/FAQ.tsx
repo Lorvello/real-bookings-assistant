@@ -99,7 +99,7 @@ const FAQ = () => {
       items: [
         {
           question: t('faq.price.q1', "What does it cost?"),
-          answer: t('faq.price.a1', "We offer a free plan, Starter at €30/month, Professional at €60/month, and Enterprise from €300/month. Starter and Professional come with a free 30-day trial and no credit card is required. Enterprise is tailored to your needs, so it doesn't include a free trial.")
+          answer: t('faq.price.a1', "Starter costs €30/month, Professional costs €60/month, and Enterprise pricing is customized. Starter and Professional come with a free 30-day trial and no credit card is required. Enterprise is tailored to your needs, so it doesn't include a free trial.")
         },
         {
           question: t('faq.price.q2', "Are there setup costs?"),
