@@ -151,7 +151,7 @@
     "billedAnnually": "Jaarlijks gefactureerd (€{{total}}/jaar)",
     "savePerYear": "Bespaar €{{amount}} per jaar",
     "customPricing": "Aangepaste prijs op basis van jouw wensen",
-    "customPricingShort": "Aangepaste prijs",
+    "customPricingShort": "Prijs op maat",
     "swipeHint": "Veeg of tik op de pijlen om abonnementen te bekijken",
     "footnote": "30 dagen gratis proberen • Geen creditcard nodig • Altijd opzegbaar",
     "modal": {
@@ -207,7 +207,6 @@
         "contactSuccess": "Bedankt voor je interesse. Als je aanvraag past, nemen we contact op via de gegevens die je hebt ingevuld.",
         "cta": "Neem contact op met sales",
         "fromPriceDesktop": "Vanaf €300",
-        "fromPriceMobile": "Vanaf €499",
         "claims": {
           "proposalScope": { "text": "Enterprise-voorstel op maat", "tooltip": "Inbegrepen modules, gebruikslimieten, prijzen en opleverdata leggen we schriftelijk vast." },
           "userAccessByAgreement": { "text": "Gebruikerstoegang en rechten op afspraak", "tooltip": "Aantallen gebruikers, rollen en rechten zijn alleen inbegrepen als ze in het voorstel staan." },

@@ -2011,7 +2011,6 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "pricing.plans.enterprise.features.f8.text": "White-glove onboarding & strategic integration consulting",
   "pricing.plans.enterprise.features.f8.tooltip": "Complete setup assistance, custom integration with existing systems, staff training, and ongoing strategic consultation",
   "pricing.plans.enterprise.fromPriceDesktop": "From €300",
-  "pricing.plans.enterprise.fromPriceMobile": "From €499",
   "pricing.plans.enterprise.name": "Enterprise",
   "pricing.plans.professional.cta": "Start Your Free Trial Now",
   "pricing.plans.professional.description": "Advanced features for teams with extended contact management and collaboration tools",

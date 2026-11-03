@@ -285,12 +285,8 @@ export const Pricing = () => {
                       </div>
                     ) : (
                       <div>
-                        <div className="flex items-baseline justify-center mb-2">
-                          <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm biolum-text-subtle">{t('pricing.plans.enterprise.fromPriceDesktop', 'From €300')}</span>
-                          <span className="text-slate-400 text-xl ml-2 font-garamond font-light">{t('pricing.perMonth', '/month')}</span>
-                        </div>
-                        <div className="text-sm text-slate-500 font-garamond font-light">
-                          {t('pricing.customPricing', 'Custom pricing based on your needs')}
+                        <div className="text-2xl font-semibold text-emerald-400 drop-shadow-sm biolum-text-subtle">
+                          {t('pricing.customPricingShort', 'Custom pricing')}
                         </div>
                       </div>
                     )}
@@ -407,11 +403,7 @@ export const Pricing = () => {
                             </div>
                           ) : (
                             <div>
-                              <div className="flex items-baseline justify-center mb-1">
-                                <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg biolum-text-subtle">{t('pricing.plans.enterprise.fromPriceMobile', 'From €499')}</span>
-                                <span className="text-slate-400/90 text-sm ml-1 font-garamond font-light">{t('pricing.perMonth', '/month')}</span>
-                              </div>
-                              <div className="text-[10px] text-slate-500 font-garamond font-light">
+                              <div className="text-lg font-semibold text-emerald-400 drop-shadow-lg biolum-text-subtle">
                                 {t('pricing.customPricingShort', 'Custom pricing')}
                               </div>
                             </div>
