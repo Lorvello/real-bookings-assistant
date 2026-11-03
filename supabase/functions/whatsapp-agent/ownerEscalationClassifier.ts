@@ -294,11 +294,17 @@ export async function classifyOwnerEscalationClaim(
       const det = (u.prompt_tokens_details ?? {}) as Record<string, unknown>;
       console.log(`[llm-usage][owner-escalation-classifier] prompt_tok=${u.prompt_tokens ?? "-"} completion_tok=${u.completion_tokens ?? "-"} cached_tok=${det.cached_tokens ?? "-"}`);
     } catch (_) { /* observability must never break the guard */ }
-    const content = (data?.choices?.[0]?.message?.content ?? "").toString().trim().toUpperCase();
+    const rawContent = data?.choices?.[0]?.message?.content;
+    const content = typeof rawContent === "string" ? rawContent.trim().toUpperCase() : "";
     const latencyMs = Date.now() - t0;
     if (content.startsWith("YES")) return { isEscalationClaim: true, reason: "yes", latencyMs };
-    if (content.startsWith("NO")) return { isEscalationClaim: false, reason: "no", latencyMs };
-    console.warn(`owner-escalation-classifier: unparseable output ${JSON.stringify(content)}, failing closed`);
+    const finish = data?.choices?.[0]?.finish_reason;
+    if (finish === "stop" && /^NO[.!]?$/u.test(content)) {
+      return { isEscalationClaim: false, reason: "no", latencyMs };
+    }
+    const finishLabel = finish == null ? "missing" :
+      ["stop", "length", "content_filter", "tool_calls"].includes(finish) ? finish : "other";
+    console.warn(`owner-escalation-classifier: unparseable output (type=${typeof rawContent}, finish=${finishLabel}), failing closed`);
     return { isEscalationClaim: true, reason: "empty_or_unparseable", latencyMs };
   } catch (err) {
     const latencyMs = Date.now() - t0;
