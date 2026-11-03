@@ -1776,8 +1776,6 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "globalBotStatus.unknownError": "Unknown error",
   "hero.ctaHow": "See how it works",
   "hero.ctaTrial": "Start Free 30-Day Trial",
-  "hero.socialProofBusinesses": "1000+ businesses automated",
-  "hero.socialProofRating": "4.9/5 rating",
   "hero.subtitleDesktopLead": "Your AI assistant books appointments through WhatsApp while you sleep.",
   "hero.subtitleMobile": "AI Books Appointments, Zero Missed Opportunities",
   "hero.subtitleTag1": "24/7 automation",

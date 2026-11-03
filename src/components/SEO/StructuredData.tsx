@@ -67,17 +67,6 @@ export const SoftwareApplicationSchema: React.FC = () => {
     name: 'Bookings Assistant',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
-    offers: {
-      '@type': 'Offer',
-      price: '20',
-      priceCurrency: 'EUR',
-      priceValidUntil: '2025-12-31',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      ratingCount: '150',
-    },
     description: 'AI-powered WhatsApp booking automation for beauty salons, healthcare, and consultants',
     featureList: [
       'WhatsApp Integration',
