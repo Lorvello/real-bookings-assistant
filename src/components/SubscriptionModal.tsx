@@ -87,10 +87,6 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             tooltip: t('pricing.plans.starter.features.f2.tooltip', 'Seamlessly sync and manage two separate calendars with automated booking coordination')
           },
           {
-            text: t('pricing.plans.starter.features.f4.text', 'AI-powered intelligent reminder sequences'),
-            tooltip: t('pricing.plans.starter.features.f4.tooltip', 'Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates')
-          },
-          {
             text: t('pricing.plans.starter.features.f5.text', 'Essential dashboard overview & live operations monitoring'),
             tooltip: t('pricing.plans.starter.features.f5.tooltip', 'Real-time view of bookings, appointments, and live operations monitoring with basic analytics')
           },

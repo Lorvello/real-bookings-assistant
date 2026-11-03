@@ -125,10 +125,10 @@
       "salons": { "sector": "Kap- en schoonheidssalons", "text": "Klanten boeken, verzetten en annuleren hun afspraak rechtstreeks via WhatsApp. Geen app om te installeren, geen telefonisch heen en weer." },
       "medical": { "sector": "Huisartsen en tandartsen", "text": "Patiënten vragen een tijd aan in een chat. De assistent checkt je echte beschikbaarheid en bevestigt het." },
       "fitness": { "sector": "Sportscholen en yogastudio's", "text": "Leden boeken een les met een bericht. Een annulering geeft de plek automatisch weer vrij." },
-      "consultants": { "sector": "Consultants en coaches", "text": "Prospects boeken een gesprek zonder e-mailgedoe. Automatische herinneringen verminderen no-shows." },
+      "consultants": { "sector": "Consultants en coaches", "text": "Prospects boeken een gesprek zonder e-mailgedoe." },
       "nail": { "sector": "Nagel- en beautybars", "text": "De assistent kent je openingstijden en diensten, dus een snelle vraag wordt een geboekte afspraak." },
       "restaurants": { "sector": "Restaurants en proeflokalen", "text": "Gasten reserveren via WhatsApp en krijgen een directe bevestiging, dag en nacht." },
-      "pet": { "sector": "Trimsalons", "text": "Baasjes boeken een trimbeurt in een chat en krijgen de dag ervoor een herinnering." },
+      "pet": { "sector": "Trimsalons", "text": "Baasjes boeken een trimbeurt in een chat." },
       "massage": { "sector": "Massage en wellness", "text": "Klanten boeken en verzetten hun eigen behandelingen, de klok rond." },
       "independent": { "sector": "Zelfstandige professionals", "text": "Eén WhatsApp-lijn runt rustig je hele agenda terwijl jij aan het werk bent." }
     }

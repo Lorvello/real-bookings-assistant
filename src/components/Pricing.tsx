@@ -48,10 +48,6 @@ export const Pricing = () => {
           tooltip: t('pricing.plans.starter.features.f3.tooltip', "Single user account with full access to your calendar and booking system")
         },
         {
-          text: t('pricing.plans.starter.features.f4.text', "AI-powered intelligent reminder sequences"),
-          tooltip: t('pricing.plans.starter.features.f4.tooltip', "Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates")
-        },
-        {
           text: t('pricing.plans.starter.features.f5.text', "Essential dashboard overview & live operations monitoring"),
           tooltip: t('pricing.plans.starter.features.f5.tooltip', "Real-time view of bookings, appointments, and live operations monitoring with basic analytics")
         },

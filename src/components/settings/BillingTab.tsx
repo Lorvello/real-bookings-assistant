@@ -31,7 +31,6 @@ const getPlanFeatures = (
     t('settings.billing.planFeatures.starter.0', 'Unlimited WhatsApp contact management'),
     t('settings.billing.planFeatures.starter.1', 'Dual-calendar orchestration system'),
     t('settings.billing.planFeatures.starter.2', 'Individual user access management'),
-    t('settings.billing.planFeatures.starter.3', 'AI-powered intelligent reminder sequences'),
     t('settings.billing.planFeatures.starter.4', 'Essential dashboard overview & live operations monitoring'),
     t('settings.billing.planFeatures.starter.5', 'Global multi-language localization'),
     t('settings.billing.planFeatures.starter.6', 'Streamlined payment processing & collection'),

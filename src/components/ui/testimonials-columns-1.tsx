@@ -13,10 +13,10 @@ const useCases = [
   { key: "salons", sector: "Hair & beauty salons", text: "Clients book, move and cancel their appointment straight from WhatsApp. No app to install, no phone tag." },
   { key: "medical", sector: "Medical & dental practices", text: "Patients request a time in a chat. The assistant checks your real availability and confirms it." },
   { key: "fitness", sector: "Fitness & yoga studios", text: "Members book a class by message. A cancellation frees the spot automatically." },
-  { key: "consultants", sector: "Consultants & coaches", text: "Prospects book a call without the email back-and-forth. Automatic reminders reduce no-shows." },
+  { key: "consultants", sector: "Consultants & coaches", text: "Prospects book a call without the email back-and-forth." },
   { key: "nail", sector: "Nail & beauty bars", text: "The assistant knows your hours and services, so a quick question turns into a booked slot." },
   { key: "restaurants", sector: "Restaurants & tasting rooms", text: "Guests reserve over WhatsApp and get an instant confirmation, day or night." },
-  { key: "pet", sector: "Pet grooming", text: "Owners book grooming in a chat and get a reminder the day before the visit." },
+  { key: "pet", sector: "Pet grooming", text: "Owners book grooming in a chat." },
   { key: "massage", sector: "Massage & wellness", text: "Clients book and reschedule their own treatments, around the clock." },
   { key: "independent", sector: "Independent professionals", text: "One WhatsApp line quietly runs your whole calendar while you work." },
 ];

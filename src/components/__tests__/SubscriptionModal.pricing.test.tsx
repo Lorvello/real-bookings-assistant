@@ -23,6 +23,7 @@ describe('SubscriptionModal Enterprise price display', () => {
 
     expect(screen.getAllByText('Custom pricing')).toHaveLength(2);
     expect(screen.queryByText(/From €300/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/intelligent reminder sequences/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Monthly' }));
     expect(screen.getAllByText('€30').length).toBeGreaterThan(0);
     expect(screen.getAllByText('€60').length).toBeGreaterThan(0);

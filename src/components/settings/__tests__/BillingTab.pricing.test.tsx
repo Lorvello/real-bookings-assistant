@@ -31,6 +31,7 @@ describe('BillingTab Enterprise price display', () => {
     expect(customPrice).toBeInTheDocument();
     expect(customPrice.parentElement).not.toHaveTextContent('/month');
     expect(screen.queryByText(/Starting at €300/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/intelligent reminder sequences/i)).not.toBeInTheDocument();
     expect(screen.getByText('€30').parentElement).toHaveTextContent('/month');
   });
 });
