@@ -84,8 +84,9 @@ const FAQ = () => {
           answer: t('faq.tech.a3', "You stay in control. You're notified of every booked appointment and can review, change or cancel any appointment from your dashboard at any time.")
         },
         {
+          id: 'privacy-policy',
           question: t('faq.tech.q4', "Is my data safe?"),
-          answer: t('faq.tech.a4', "Yes. We are GDPR compliant, your data is stored securely on European servers, and we never sell your customer data. You can read exactly how we handle data in our Privacy Policy.")
+          answer: t('faq.tech.a4', "For privacy information, see our privacy policy.")
         },
         {
           question: t('faq.tech.q5', "Can I customize the chatbot?"),
@@ -424,6 +425,11 @@ const FAQ = () => {
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-300 leading-relaxed pb-4 md:pb-6 text-sm md:text-base">
                           {item.answer}
+                          {item.id === 'privacy-policy' && (
+                            <a href="/privacy-policy" className="ml-1 text-emerald-400 underline hover:text-emerald-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400">
+                              {t('faq.tech.privacyLink', 'Read the privacy policy')}
+                            </a>
+                          )}
                         </AccordionContent>
                       </AccordionItem>
                     ))}

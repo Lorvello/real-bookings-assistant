@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
 
 const controls = vi.hoisted(() => ({
   language: 'en',
@@ -87,6 +88,37 @@ describe('FAQ public capability claims', () => {
     fireEvent.change(search, { target: { value: '' } });
     fireEvent.click(screen.getAllByText(retained)[0]);
     expect(screen.getByText(retained)).toBeInTheDocument();
+  });
+
+  it.each([
+    ['en', 'For privacy information, see our privacy policy.', 'Read the privacy policy', 'We are GDPR compliant', 'European servers', 'never sell your customer data'],
+    ['nl', 'Bekijk ons privacybeleid voor informatie.', 'Lees het privacybeleid', 'We zijn AVG-conform', 'Europese servers', 'verkopen je klantgegevens nooit'],
+  ])('links to the actual privacy route without an unverified guarantee in %s', async (language, answer, link, oldClaim, serverClaim, saleClaim) => {
+    controls.language = language;
+    if (language === 'nl') controls.dictionary = JSON.parse(readFileSync(resolve(process.cwd(), 'src/i18n/locales/nl/faq.json'), 'utf8'));
+    const { container } = render(<FAQ />);
+    expect(screen.getByText(answer)).toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(oldClaim, 'i'))).not.toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(serverClaim, 'i'))).not.toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(saleClaim, 'i'))).not.toBeInTheDocument();
+    const privacyLink = screen.getByRole('link', { name: link });
+    expect(privacyLink).toHaveAttribute('href', '/privacy-policy');
+    privacyLink.focus();
+    const user = userEvent.setup();
+    await user.tab({ shift: true });
+    await user.tab();
+    expect(privacyLink).toHaveFocus();
+    expect(readFileSync(resolve(process.cwd(), 'src/App.tsx'), 'utf8')).toMatch(/path="\/privacy-policy"/);
+    const data = JSON.parse(container.querySelector('script[type="application/ld+json"]')!.textContent || '{}');
+    const json = JSON.stringify(data);
+    expect(json).toContain(answer);
+    expect(json).not.toContain(oldClaim);
+    expect(json).not.toContain(serverClaim);
+    expect(json).not.toContain(saleClaim);
+    expect(json).not.toContain('<a ');
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: answer } });
+    expect(screen.getByText(answer)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: link })).toHaveAttribute('href', '/privacy-policy');
   });
 
   it.each([

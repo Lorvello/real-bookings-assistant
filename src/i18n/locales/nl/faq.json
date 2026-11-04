@@ -42,7 +42,8 @@
       "q3": "Wat gebeurt er als de AI een fout maakt?",
       "a3": "Jij houdt de controle. Je krijgt bij elke geboekte afspraak een melding en kunt elke afspraak op elk moment vanuit je dashboard bekijken, wijzigen of annuleren.",
       "q4": "Zijn mijn gegevens veilig?",
-      "a4": "Ja. We zijn AVG-conform, je gegevens worden veilig op Europese servers opgeslagen en we verkopen je klantgegevens nooit. In ons privacybeleid lees je precies hoe we met gegevens omgaan.",
+      "a4": "Bekijk ons privacybeleid voor informatie.",
+      "privacyLink": "Lees het privacybeleid",
       "q5": "Kan ik de chatbot aanpassen?",
       "a5": "Ja. Je stelt je eigen diensten, prijzen, beschikbaarheid en bedrijfsinformatie in, en de assistent gebruikt dat allemaal om je klanten nauwkeurig te antwoorden, alsof het je eigen medewerker is."
     },
