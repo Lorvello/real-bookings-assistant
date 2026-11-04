@@ -2,11 +2,11 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, Lock, Eye, Database, UserCheck, Mail } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 const PrivacyPolicy = () => {
-  const { t, i18n } = useTranslation('privacy');
+  const { t } = useTranslation('privacy');
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -35,9 +35,6 @@ const PrivacyPolicy = () => {
             <CardTitle className="text-3xl font-bold text-foreground">
               {t('privacy.title', 'Privacy Policy')}
             </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              {t('privacy.lastUpdated', 'Last updated:')} {new Date().toLocaleDateString(i18n.language === 'nl' ? 'nl-NL' : 'en-US')}
-            </CardDescription>
           </CardHeader>
 
           <CardContent className="p-6 sm:p-8">
@@ -226,7 +223,7 @@ const PrivacyPolicy = () => {
                   {t('privacy.s9.h', '9. Changes to this privacy policy')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  {t('privacy.s9.p', 'We may update this privacy policy from time to time. We will notify you of important changes via email or a prominent notice on our website. The date of the last change is always displayed at the top of this document.')}
+                  {t('privacy.s9.p', 'We may update this privacy policy from time to time. We will notify you of important changes via email or a prominent notice on our website.')}
                 </p>
               </section>
 
