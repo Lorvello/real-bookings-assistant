@@ -2615,7 +2615,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "settings.operations.sections.policies.description": "Select a calendar above to manage its booking policies.",
   "settings.operations.sections.policies.descriptionFull": "How customers can book {{calendarName}} — slot length, notice, daily limits, cancellation and reminders.",
   "settings.operations.sections.policies.title": "Booking policies",
-  "settings.operations.sections.reminders.description": "Automatic reminders before the appointment cut no-shows significantly.",
+  "settings.operations.sections.reminders.description": "Appointment reminder settings.",
   "settings.operations.sections.reminders.title": "Reminders",
   "settings.operations.sections.whatsappAssistant.description": "Turn the automated booking assistant on or off across every calendar.",
   "settings.operations.sections.whatsappAssistant.title": "WhatsApp assistant",

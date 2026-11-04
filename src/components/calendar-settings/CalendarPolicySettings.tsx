@@ -390,7 +390,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
         <div className="space-y-1">
           <h4 className="text-sm font-semibold tracking-[-0.01em] text-foreground">{t('settings.operations.sections.reminders.title', 'Reminders')}</h4>
           <p className="text-xs leading-5 text-muted-foreground">
-            {t('settings.operations.sections.reminders.description', 'Automatic reminders before the appointment cut no-shows significantly.')}
+            {t('settings.operations.sections.reminders.description', 'Appointment reminder settings.')}
           </p>
         </div>
 

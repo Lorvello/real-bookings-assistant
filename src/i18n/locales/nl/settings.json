@@ -162,7 +162,7 @@
         },
         "reminders": {
           "title": "Herinneringen",
-          "description": "Automatische herinneringen voor de afspraak verminderen no-shows aanzienlijk."
+          "description": "Instellingen voor afspraakherinneringen."
         }
       },
       "buttons": {
