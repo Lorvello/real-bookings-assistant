@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SubscriptionTierConfig } from '@/types/database';
 
 export const useSubscriptionTiers = () => {
-  const { data: tiers, isLoading, error } = useQuery({
+  const { data: tiers, isLoading, error, refetch } = useQuery({
     queryKey: ['subscription-tiers'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -28,5 +28,5 @@ export const useSubscriptionTiers = () => {
     },
   });
 
-  return { tiers, isLoading, error };
+  return { tiers, isLoading, error, refetch };
 };

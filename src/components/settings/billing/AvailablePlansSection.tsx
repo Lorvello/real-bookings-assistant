@@ -30,6 +30,10 @@ interface AvailablePlansSectionProps {
   onUpgrade: (tierName: string) => void;
   onContactSales: () => void;
   loading?: boolean;
+  upgradeDisabled?: boolean;
+  upgradeDisabledReason?: string;
+  onRefreshBillingStatus?: () => void;
+  billingStatusLoading?: boolean;
 }
 
 /**
@@ -43,6 +47,10 @@ export function AvailablePlansSection({
   onUpgrade,
   onContactSales,
   loading,
+  upgradeDisabled = false,
+  upgradeDisabledReason,
+  onRefreshBillingStatus,
+  billingStatusLoading = false,
 }: AvailablePlansSectionProps) {
   const { t } = useTranslation('settings');
   return (
@@ -70,6 +78,16 @@ export function AvailablePlansSection({
           </div>
         }
       >
+        {upgradeDisabled && upgradeDisabledReason && (
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <p role="status" className="text-sm text-muted-foreground">{upgradeDisabledReason}</p>
+            {onRefreshBillingStatus && (
+              <Button variant="outline" size="sm" onClick={onRefreshBillingStatus} disabled={billingStatusLoading}>
+                {t('settings.billing.checkoutGuard.refresh', 'Refresh billing status')}
+              </Button>
+            )}
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((tier) => (
             <div
@@ -114,7 +132,7 @@ export function AvailablePlansSection({
                 <Button
                   className="w-full"
                   variant={tier.isCurrent ? 'outline' : 'default'}
-                  disabled={tier.isCurrent || loading}
+                  disabled={tier.isCurrent || loading || upgradeDisabled}
                   onClick={() => onUpgrade(tier.tierName)}
                 >
                   {loading ? t('settings.billing.planCard.loading', 'Loading…') : tier.isCurrent ? t('settings.billing.planCard.currentPlan', 'Current plan') : t('settings.billing.planCard.switchTo', 'Switch to {{displayName}}', { displayName: tier.displayName })}

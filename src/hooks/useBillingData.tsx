@@ -4,6 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface BillingData {
   subscribed: boolean;
+  stripe_status?: string | null;
+  stripe_subscription_id?: string | null;
   subscription_tier: string | null;
   subscription_end: string | null;
   payment_status: string;
@@ -25,7 +27,7 @@ interface BillingData {
 export const useBillingData = () => {
   const { user } = useAuth();
 
-  const { data: billingData, isLoading, error, refetch } = useQuery({
+  const { data: billingData, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ['billing-data', user?.id],
     queryFn: async (): Promise<BillingData> => {
       if (!user) throw new Error('User not authenticated');
@@ -63,6 +65,7 @@ export const useBillingData = () => {
   return {
     billingData,
     isLoading,
+    isFetching,
     error,
     refetch
   };

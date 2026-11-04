@@ -90,8 +90,8 @@ const BillingTabContent: React.FC = () => {
   const { t } = useTranslation('settings');
   const { t: tHome } = useTranslation('home');
   const { userStatus } = useUserStatus();
-  const { tiers, isLoading: tiersLoading } = useSubscriptionTiers();
-  const { billingData, isLoading: billingLoading, error: billingError, refetch } = useBillingData();
+  const { tiers, isLoading: tiersLoading, error: tiersError, refetch: refetchTiers } = useSubscriptionTiers();
+  const { billingData, isLoading: billingLoading, isFetching: billingFetching, error: billingError, refetch } = useBillingData();
   const { profileData } = useSettingsContext();
   const { toast } = useToast();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -111,6 +111,20 @@ const BillingTabContent: React.FC = () => {
 
   const hasNoSubscription =
     userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive';
+
+  const stripeStatus = billingData?.stripe_status;
+  const stripeId = billingData?.stripe_subscription_id;
+  const noProviderSubscription = stripeStatus === null && stripeId === null &&
+    (billingData?.payment_status === 'unpaid' || billingData?.payment_status === 'trialing');
+  const endedProviderSubscription = typeof stripeId === 'string' && stripeId.trim().length > 0 &&
+    ((stripeStatus === 'canceled' && billingData?.payment_status === 'canceled') ||
+     (stripeStatus === 'incomplete_expired' && billingData?.payment_status === 'unpaid'));
+  const noActiveUserStatus = ['trial', 'expired_trial', 'canceled_and_inactive', 'setup_incomplete']
+    .includes(userStatus.userType) ||
+    (userStatus.userType === 'missed_payment' && stripeStatus === 'incomplete_expired' && endedProviderSubscription);
+  const canStartCheckout = !billingLoading && !billingFetching && !billingError && billingData?.subscribed === false &&
+    userStatus.isStatusLoading === false && userStatus.isSubscriber === false && noActiveUserStatus &&
+    (noProviderSubscription || endedProviderSubscription);
 
   const handleManageSubscription = async () => {
     setLoading(true);
@@ -153,7 +167,7 @@ const BillingTabContent: React.FC = () => {
   };
 
   const handleUpgrade = async (tierName: string) => {
-    if (!tiers) return;
+    if (!canStartCheckout || !tiers || tierName === 'enterprise') return;
     const selectedTier = tiers.find((tier) => tier.tier_name === tierName);
     if (!selectedTier) {
       toast({ title: t('settings.billing.toast.error', 'Error'), description: t('settings.billing.errors.planNotFound', 'Selected plan not found. Please try again.'), variant: 'destructive' });
@@ -196,8 +210,8 @@ const BillingTabContent: React.FC = () => {
     if (!tiers || !profileData) return null;
     if (hasNoSubscription) return null;
     const userTier = profileData.subscription_tier;
-    if (!userTier) return tiers.find((t) => t.tier_name === 'starter') || tiers[0];
-    return tiers.find((t) => t.tier_name === userTier) || tiers.find((t) => t.tier_name === 'starter') || tiers[0];
+    if (!userTier) return null;
+    return tiers.find((t) => t.tier_name === userTier) || null;
   };
   const currentPlan = getCurrentPlan();
   const actualInterval = billingData?.billing_cycle;
@@ -205,7 +219,7 @@ const BillingTabContent: React.FC = () => {
   const actualMonthly = actualInterval === 'month' || actualInterval === 'monthly';
 
   const getCurrentPrice = () => {
-    if (!currentPlan) return { amount: 0, displayText: t('settings.billing.pricing.free', 'Free') };
+    if (!currentPlan) return { amount: 0, displayText: t('settings.billing.pricing.unavailable', 'Price unavailable') };
     if (currentPlan.tier_name !== 'free' && !actualAnnual && !actualMonthly) {
       return { amount: 0, displayText: t('settings.billing.pricing.unavailable', 'Price unavailable') };
     }
@@ -362,7 +376,7 @@ const BillingTabContent: React.FC = () => {
         billingText,
         savingsText,
         features: planFeatures[tier.tier_name] ?? planFeatures.starter,
-        isCurrent: tier.tier_name === currentPlan?.tier_name,
+        isCurrent: billingData?.subscribed === true && tier.tier_name === currentPlan?.tier_name,
         isEnterprise,
         highlightPrice: billingCycle === 'yearly' && !isEnterprise,
       };
@@ -370,8 +384,35 @@ const BillingTabContent: React.FC = () => {
 
   if (tiersLoading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+      <div className="flex items-center justify-center py-16" role="status" aria-live="polite">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary" aria-hidden="true" />
+        <span className="sr-only">{t('settings.billing.tiersError.loading', 'Loading subscription plans…')}</span>
+      </div>
+    );
+  }
+
+  // A missing plan catalogue cannot tell us which plan a customer has.
+  if (tiersError || !tiers || tiers.length === 0) {
+    return (
+      <div className="flex min-h-[16rem] items-center justify-center py-16">
+        <div className="surface-raised fade-up flex max-w-md flex-col items-center gap-3 rounded-2xl px-8 py-12 text-center" role="alert">
+          <AlertCircle aria-hidden="true" className="h-6 w-6 text-destructive-foreground" />
+          <p className="text-sm font-medium text-foreground">
+            {t('settings.billing.tiersError.title', 'Plan details are unavailable')}
+          </p>
+          <p className="max-w-xs text-xs text-subtle-foreground">
+            {t('settings.billing.tiersError.description', 'We cannot show your plan details right now. Please try again.')}
+          </p>
+          <Button variant="secondary" size="sm" onClick={() => refetchTiers()} className="mt-1 gap-1.5">
+            <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" /> {t('settings.billing.errorState.retryButton', 'Retry')}
+          </Button>
+          {!billingLoading && !billingFetching && !billingError && billingData?.subscribed === true &&
+            userStatus.isStatusLoading === false && userStatus.isSubscriber && (
+            <Button variant="outline" size="sm" onClick={handleManageSubscription} disabled={loading}>
+              {t('settings.billing.currentPlan.action', 'Manage subscription')}
+            </Button>
+          )}
+        </div>
       </div>
     );
   }
@@ -411,7 +452,7 @@ const BillingTabContent: React.FC = () => {
         <CurrentPlanSection
           userType={userStatus.userType}
           hasNoSubscription={hasNoSubscription}
-          planName={currentPlan?.display_name || currentPlan?.tier_name || 'Free'}
+          planName={currentPlan?.display_name || currentPlan?.tier_name || t('settings.billing.currentPlan.unknownPlan', 'Unknown plan')}
           planDescription={currentPlan ? t('settings.billing.planDesc.' + currentPlan.tier_name, currentPlan.description ?? '') : undefined}
           priceText={priceText}
           priceSubline={currentPlan && currentPrice.amount > 0 ? getBillingStatus() : undefined}
@@ -450,6 +491,12 @@ const BillingTabContent: React.FC = () => {
         onUpgrade={handleUpgrade}
         onContactSales={() => setShowEnterpriseForm(true)}
         loading={loading}
+        upgradeDisabled={!canStartCheckout}
+        upgradeDisabledReason={billingData?.subscribed === true && userStatus.isStatusLoading === false && userStatus.isSubscriber
+          ? t('settings.billing.checkoutGuard.active', 'Manage your current subscription to change plans.')
+          : t('settings.billing.checkoutGuard.unknown', 'We cannot confirm that a new subscription can be started. Refresh the billing status; if the issue persists, reload this page.')}
+        onRefreshBillingStatus={() => { void refetch(); }}
+        billingStatusLoading={billingLoading || billingFetching}
       />
 
       <EnterpriseContactForm open={showEnterpriseForm} onOpenChange={setShowEnterpriseForm} />

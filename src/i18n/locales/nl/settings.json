@@ -442,6 +442,7 @@
         "noPlan": "Geen abonnement",
         "noSubscription": "Geen actief abonnement",
         "noSubscriptionDesc": "Neem een abonnement om alle functies te gebruiken.",
+        "unknownPlan": "Onbekend abonnement",
         "title": "Huidig abonnement",
         "planNameFormat": "{{name}}-abonnement"
       },
@@ -568,6 +569,16 @@
       },
       "invoice": {
         "noDescription": "Geen omschrijving"
+      },
+      "checkoutGuard": {
+        "active": "Beheer je huidige abonnement om van abonnement te wisselen.",
+        "unknown": "We kunnen niet bevestigen dat je een nieuw abonnement kunt starten. Vernieuw de facturatiestatus; laad deze pagina opnieuw als het probleem blijft bestaan.",
+        "refresh": "Facturatiestatus vernieuwen"
+      },
+      "tiersError": {
+        "title": "Abonnementsgegevens zijn niet beschikbaar",
+        "description": "We kunnen je abonnementsgegevens nu niet tonen. Probeer het opnieuw.",
+        "loading": "Abonnementen laden…"
       },
       "errorState": {
         "title": "Kan je facturatiegegevens niet laden",
