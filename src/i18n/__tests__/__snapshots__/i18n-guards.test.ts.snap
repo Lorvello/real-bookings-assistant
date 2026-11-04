@@ -1939,7 +1939,6 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "payment.subscription.features.professional.f7": "Dedicated priority customer success",
   "payment.subscription.features.starter.f1": "Unlimited WhatsApp contact management",
   "payment.subscription.features.starter.f2": "Dual-calendar orchestration system",
-  "payment.subscription.features.starter.f3": "AI-powered intelligent reminder sequences",
   "payment.subscription.features.starter.f4": "Essential dashboard overview & live operations monitoring",
   "payment.subscription.features.starter.f5": "Global multi-language localization",
   "payment.subscription.features.starter.f6": "Streamlined payment processing & collection",

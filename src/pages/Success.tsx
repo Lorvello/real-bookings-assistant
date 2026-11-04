@@ -214,7 +214,6 @@ export default function Success() {
                     <>
                       <li>• {t('payment.subscription.features.starter.f1', 'Unlimited WhatsApp contact management')}</li>
                       <li>• {t('payment.subscription.features.starter.f2', 'Dual-calendar orchestration system')}</li>
-                      <li>• {t('payment.subscription.features.starter.f3', 'AI-powered intelligent reminder sequences')}</li>
                       <li>• {t('payment.subscription.features.starter.f4', 'Essential dashboard overview & live operations monitoring')}</li>
                       <li>• {t('payment.subscription.features.starter.f5', 'Global multi-language localization')}</li>
                       <li>• {t('payment.subscription.features.starter.f6', 'Streamlined payment processing & collection')}</li>

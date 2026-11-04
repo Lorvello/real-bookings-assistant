@@ -107,6 +107,18 @@ describe('subscription checkout verification state', () => {
     });
   });
 
+  it('shows verified Starter access without promising unproven reminder sequences', async () => {
+    mocks.invoke.mockResolvedValue({
+      data: { success: true, subscribed: true, subscription_tier: 'starter', payment_status: 'paid' },
+      error: null,
+    });
+    renderSuccess('/success?session_id=cs_test_starter');
+
+    expect(await screen.findByText('Payment Successful!')).toBeInTheDocument();
+    expect(screen.getByText(/Unlimited WhatsApp contact management/i)).toBeInTheDocument();
+    expect(screen.queryByText(/intelligent reminder sequences/i)).not.toBeInTheDocument();
+  });
+
   it('does not show success for an unconfirmed payment result without an invoke error', async () => {
     mocks.invoke.mockResolvedValue({
       data: {
