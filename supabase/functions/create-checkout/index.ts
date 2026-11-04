@@ -14,9 +14,13 @@ import {
   type SubscriptionTierPriceRow,
 } from "./subscriptionCheckout.ts";
 import {
-  blocksNewSubscriptionCheckout,
   parseSubscriptionCheckoutClaim,
 } from "../_shared/subscriptionCheckoutGuard.ts";
+import {
+  executeClaimedCheckout,
+  guardReplayScan,
+  scanCustomerSubscriptions,
+} from "../_shared/checkoutSubscriptionScan.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -211,42 +215,27 @@ serve(async (req) => {
       ? (localSubscriber.stripe_customer_id || customers.data[0]?.id)
       : customers.data[0]?.id;
 
-    if (localSubscriber?.stripe_subscription_id) {
-      try {
-        const existing = await stripe.subscriptions.retrieve(
-          localSubscriber.stripe_subscription_id,
-        );
-        if (blocksNewSubscriptionCheckout(existing.status)) {
-          return jsonResponse({
-            error: "Use the billing portal to change an existing subscription",
-            code: "SUBSCRIPTION_ALREADY_EXISTS_USE_PORTAL",
-          }, 409);
+    const scanProviderSubscriptions = async (): Promise<boolean> => {
+      if (!customerId) {
+        if (localSubscriber?.stripe_subscription_id != null || localSubscriber?.stripe_customer_id != null) {
+          throw new Error("SUBSCRIPTION_CUSTOMER_UNVERIFIED");
         }
-      } catch (providerError) {
-        const code = (providerError as { code?: string })?.code;
-        if (code !== "resource_missing") throw providerError;
+        // No linked customer is not proof of exclusive ownership: that separate
+        // customer-provenance gate remains required before launch.
+        return false;
       }
-    }
-
-    if (customerId) {
-      const providerSubscriptions = await stripe.subscriptions.list({
-        customer: customerId,
-        status: "all",
-        limit: 10,
+      return await scanCustomerSubscriptions({
+        customerId,
+        ownerId: user.id,
+        liveMode: stripeMode === "live",
+        localSubscriptionId: localSubscriber?.stripe_subscription_id,
+        retrieve: (id) => stripe.subscriptions.retrieve(id),
+        listPage: (params) => stripe.subscriptions.list(params),
       });
-      if (
-        providerSubscriptions.data.some((subscription: Stripe.Subscription) =>
-          blocksNewSubscriptionCheckout(subscription.status)
-        )
-      ) {
-        return jsonResponse({
-          error: "Use the billing portal to change an existing subscription",
-          code: "SUBSCRIPTION_ALREADY_EXISTS_USE_PORTAL",
-        }, 409);
-      }
-    }
+    };
 
     const cadence = body.is_annual ? "year" : "month";
+    const claimStartedAt = performance.now();
     const { data: rawClaim, error: claimError } = await supabaseAdmin.rpc(
       "claim_subscription_checkout",
       {
@@ -264,6 +253,23 @@ serve(async (req) => {
     }
     const checkoutClaim = parseSubscriptionCheckoutClaim(rawClaim);
     if (checkoutClaim.kind === "replay") {
+      if (await guardReplayScan({
+        customerId,
+        ownerId: user.id,
+        liveMode: stripeMode === "live",
+        sessionId: checkoutClaim.sessionId,
+        checkoutUrl: checkoutClaim.checkoutUrl,
+        tierName: body.tier_name,
+        isAnnual: body.is_annual,
+        authoritativePriceId,
+        retrieveSession: (id) => stripe.checkout.sessions.retrieve(id, { expand: ["line_items"] }),
+        scan: scanProviderSubscriptions,
+      })) {
+        return jsonResponse({
+          error: "Use the billing portal to change an existing subscription",
+          code: "SUBSCRIPTION_ALREADY_EXISTS_USE_PORTAL",
+        }, 409);
+      }
       return jsonResponse({
         url: checkoutClaim.checkoutUrl,
         session_id: checkoutClaim.sessionId,
@@ -286,6 +292,16 @@ serve(async (req) => {
       }, 409);
     }
 
+    const releaseOwnClaim = async (reason: string): Promise<unknown> => {
+      const { data, error } = await supabaseAdmin.rpc("fail_subscription_checkout", {
+        p_user_id: user.id,
+        p_stripe_mode: stripeMode,
+        p_claim_token: checkoutClaim.claimToken,
+        p_error_code: reason,
+      });
+      if (error) throw new Error("SUBSCRIPTION_CLAIM_RELEASE_FAILED");
+      return data;
+    };
     const idempotencyKey = [
       "subscription-checkout",
       user.id,
@@ -295,41 +311,54 @@ serve(async (req) => {
       checkoutClaim.claimToken,
     ].join("-");
 
-    let session: Stripe.Checkout.Session;
-    try {
-      session = await stripe.checkout.sessions.create({
-        customer: customerId,
-        customer_email: customerId ? undefined : user.email,
-        client_reference_id: user.id,
-        mode: "subscription",
-        line_items: [{ price: authoritativePriceId, quantity: 1 }],
-        success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: cancelUrl,
-        subscription_data: {
-          metadata: {
-            user_id: user.id,
-            tier_name: body.tier_name,
-            is_annual: body.is_annual ? "true" : "false",
-            gate_configuration_hash: gate.configurationHash,
-          },
-        },
-        metadata: {
-          user_id: user.id,
-          tier_name: body.tier_name,
-          is_annual: body.is_annual ? "true" : "false",
-          stripe_mode: stripeMode,
-          gate_configuration_hash: gate.configurationHash,
-        },
-      }, { idempotencyKey });
-    } catch (providerError) {
-      await supabaseAdmin.rpc("fail_subscription_checkout", {
-        p_user_id: user.id,
-        p_stripe_mode: stripeMode,
-        p_claim_token: checkoutClaim.claimToken,
-        p_error_code: "stripe_session_create_failed",
-      });
-      throw providerError;
+    const checkoutResult = await executeClaimedCheckout({
+      startedAt: claimStartedAt,
+      scan: scanProviderSubscriptions,
+      release: releaseOwnClaim,
+      create: async () => {
+        try {
+          return await stripe.checkout.sessions.create({
+            customer: customerId,
+            customer_email: customerId ? undefined : user.email,
+            client_reference_id: user.id,
+            mode: "subscription",
+            line_items: [{ price: authoritativePriceId, quantity: 1 }],
+            success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: cancelUrl,
+            subscription_data: {
+              metadata: {
+                user_id: user.id,
+                tier_name: body.tier_name,
+                is_annual: body.is_annual ? "true" : "false",
+                gate_configuration_hash: gate.configurationHash,
+              },
+            },
+            metadata: {
+              user_id: user.id,
+              tier_name: body.tier_name,
+              is_annual: body.is_annual ? "true" : "false",
+              stripe_mode: stripeMode,
+              gate_configuration_hash: gate.configurationHash,
+            },
+          }, { idempotencyKey });
+        } catch (providerError) {
+          await supabaseAdmin.rpc("fail_subscription_checkout", {
+            p_user_id: user.id,
+            p_stripe_mode: stripeMode,
+            p_claim_token: checkoutClaim.claimToken,
+            p_error_code: "stripe_session_create_failed",
+          });
+          throw providerError;
+        }
+      },
+    });
+    if (checkoutResult.kind === "blocked") {
+      return jsonResponse({
+        error: "Use the billing portal to change an existing subscription",
+        code: "SUBSCRIPTION_ALREADY_EXISTS_USE_PORTAL",
+      }, 409);
     }
+    const session: Stripe.Checkout.Session = checkoutResult.value;
 
     if (!session.url || !session.expires_at) {
       await supabaseAdmin.rpc("fail_subscription_checkout", {
