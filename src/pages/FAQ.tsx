@@ -128,16 +128,8 @@ const FAQ = () => {
           answer: t('faq.feat.a1', "Yes. Customers can reschedule or cancel their appointments themselves via WhatsApp. The assistant checks new availability automatically and follows the cancellation rules you set.")
         },
         {
-          question: t('faq.feat.q2', "Does it send reminders?"),
-          answer: t('faq.feat.a2', "Yes. The platform can send automatic appointment reminders by email, and you control when they go out, so customers are less likely to forget their appointment.")
-        },
-        {
           question: t('faq.feat.q3', "Can it process payments?"),
           answer: t('faq.feat.a3', "Yes. You can ask customers to pay a deposit or prepay when they book, securely through Stripe. It's optional and you set it per service.")
-        },
-        {
-          question: t('faq.feat.q4', "Does it help reduce no-shows?"),
-          answer: t('faq.feat.a4', "Yes. Automatic reminders keep the appointment top of mind for your customers, which helps reduce no-shows.")
         },
         {
           question: t('faq.feat.q5', "Can I offer multiple services?"),
