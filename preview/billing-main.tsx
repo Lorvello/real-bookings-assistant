@@ -36,16 +36,16 @@ const MOCK_INVOICES: BillingInvoice[] = [
 ];
 
 const FEATURES = {
-  starter: ['Unlimited WhatsApp contacts', 'Dual-calendar orchestration', 'AI reminder sequences', 'Live operations dashboard', 'Multi-language localization'],
+  starter: ['Unlimited WhatsApp contacts', 'Dual-calendar orchestration', 'Live operations dashboard', 'Multi-language localization'],
   professional: ['Everything in Starter', 'Installment payments', 'Unlimited calendars', 'Team suite (2-10 users)', 'Complete analytics suite', 'Priority customer success'],
-  enterprise: ['Everything in Professional', 'Dedicated WhatsApp Business API', 'Voice call routing', 'Omnichannel social DMs', 'Enterprise SLA', 'White-glove onboarding'],
+  enterprise: ['Tailored Enterprise proposal', 'User access and permissions available by agreement', 'WhatsApp Business setup available by agreement', 'Support coverage and service targets available by agreement', 'Onboarding and integration scope available by agreement'],
 };
 
 function makePlans(cycle: 'monthly' | 'yearly'): PlanTile[] {
   return [
     { id: 's', tierName: 'starter', displayName: 'Starter', displayPrice: cycle === 'yearly' ? '€24' : '€30', billingText: '/month', savingsText: cycle === 'yearly' ? 'Billed annually (€288/year)' : 'For solo practitioners getting started', features: FEATURES.starter, isCurrent: false, isEnterprise: false, highlightPrice: cycle === 'yearly' },
     { id: 'p', tierName: 'professional', displayName: 'Professional', displayPrice: cycle === 'yearly' ? '€48' : '€60', billingText: '/month', savingsText: cycle === 'yearly' ? 'Billed annually (€576/year)' : 'For growing teams and multi-location', features: FEATURES.professional, isCurrent: true, isEnterprise: false, highlightPrice: cycle === 'yearly' },
-    { id: 'e', tierName: 'enterprise', displayName: 'Enterprise', displayPrice: 'Starting at €300', billingText: '/month', savingsText: 'Custom pricing for large organizations', features: FEATURES.enterprise, isCurrent: false, isEnterprise: true, highlightPrice: false },
+    { id: 'e', tierName: 'enterprise', displayName: 'Enterprise', displayPrice: 'Custom pricing', billingText: '', savingsText: 'Custom pricing for large organizations', features: FEATURES.enterprise, isCurrent: false, isEnterprise: true, highlightPrice: false },
   ];
 }
 

@@ -2400,6 +2400,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "settings.billing.planTile.perMonth": "/month",
   "settings.billing.pricing.free": "Free",
   "settings.billing.pricing.perMonth": "/month",
+  "settings.billing.pricing.unavailable": "Price unavailable",
   "settings.billing.retryOwnerCheck": "Try again",
   "settings.billing.timeline.cycleUnavailable": "Cycle unavailable",
   "settings.billing.timeline.nextBillingUnavailable": "Next billing date unavailable",

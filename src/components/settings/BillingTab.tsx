@@ -200,13 +200,25 @@ const BillingTabContent: React.FC = () => {
     return tiers.find((t) => t.tier_name === userTier) || tiers.find((t) => t.tier_name === 'starter') || tiers[0];
   };
   const currentPlan = getCurrentPlan();
+  const actualInterval = billingData?.billing_cycle;
+  const actualAnnual = actualInterval === 'year' || actualInterval === 'yearly';
+  const actualMonthly = actualInterval === 'month' || actualInterval === 'monthly';
 
   const getCurrentPrice = () => {
     if (!currentPlan) return { amount: 0, displayText: t('settings.billing.pricing.free', 'Free') };
-    const actualBillingCycle = billingData?.billing_cycle || 'monthly';
-    const price = actualBillingCycle === 'yearly' ? currentPlan.price_yearly : currentPlan.price_monthly;
+    if (currentPlan.tier_name !== 'free' && !actualAnnual && !actualMonthly) {
+      return { amount: 0, displayText: t('settings.billing.pricing.unavailable', 'Price unavailable') };
+    }
+    const price = actualAnnual ? currentPlan.price_yearly : currentPlan.price_monthly;
+    if (currentPlan.tier_name === 'enterprise' &&
+        (typeof price !== 'number' || !Number.isFinite(price) || price < 0)) {
+      return { amount: 0, displayText: t('settings.billing.pricing.unavailable', 'Price unavailable') };
+    }
+    if (currentPlan.tier_name === 'enterprise') {
+      return { amount: 0, displayText: t('settings.billing.planTile.customPrice', 'Custom pricing') };
+    }
     if (!price || price === 0) return { amount: 0, displayText: t('settings.billing.pricing.free', 'Free') };
-    const monthlyPrice = actualBillingCycle === 'yearly' ? price / 12 : price;
+    const monthlyPrice = actualAnnual ? price / 12 : price;
     return { amount: Math.round(monthlyPrice), displayText: `€${Math.round(monthlyPrice)}/month` };
   };
   const currentPrice = getCurrentPrice();
@@ -218,7 +230,9 @@ const BillingTabContent: React.FC = () => {
         date: userStatus.subscriptionEndDate ? new Date(userStatus.subscriptionEndDate).toLocaleDateString() : t('settings.billing.billingStatus.endDateFallback', 'end date'),
       });
     }
-    return billingCycle === 'yearly' ? t('settings.billing.billingStatus.billedAnnually', 'Billed annually') : t('settings.billing.billingStatus.billedMonthly', 'Billed monthly');
+    if (actualAnnual) return t('settings.billing.billingStatus.billedAnnually', 'Billed annually');
+    if (actualMonthly) return t('settings.billing.billingStatus.billedMonthly', 'Billed monthly');
+    return t('settings.billing.timeline.cycleUnavailable', 'Cycle unavailable');
   };
 
   const priceText: React.ReactNode =
@@ -314,7 +328,9 @@ const BillingTabContent: React.FC = () => {
 
   // ---- Available plans derivation ---------------------------------------------
   const plans: PlanTile[] = (tiers || [])
-    .filter((tier) => tier.tier_name !== 'free' && tier.price_monthly > 0)
+    .filter((tier) => tier.tier_name !== 'free' && typeof tier.price_monthly === 'number' &&
+      Number.isFinite(tier.price_monthly) &&
+      (tier.price_monthly > 0 || (tier.tier_name === 'enterprise' && tier.price_monthly === 0)))
     .map((tier) => {
       const isEnterprise = tier.tier_name === 'enterprise';
       let displayPrice: string;

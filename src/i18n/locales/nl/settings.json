@@ -491,6 +491,7 @@
       },
       "pricing": {
         "free": "Gratis",
+        "unavailable": "Prijs niet beschikbaar",
         "perMonth": "/maand"
       },
       "timeline": {
